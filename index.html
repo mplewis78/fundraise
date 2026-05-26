@@ -85,8 +85,8 @@ nav a.cta:hover { background: #e8a820; color: var(--ink); }
   margin: 0 auto;
   padding: 5.5rem 2.5rem 5rem;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 5rem;
+  grid-template-columns: 1fr;
+  max-width: 780px;
   align-items: center;
 }
 
@@ -704,186 +704,7 @@ footer p {
 }
 
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
-// ── INPUT TABS ──
-function switchTab(mode) {
-  ['text', 'video', 'file'].forEach(function(m) {
-    var tabEl = document.getElementById('tab-' + m);
-    if (tabEl) tabEl.classList.toggle('active', m === mode);
-    var modeEl = document.getElementById('mode-' + m);
-    if (modeEl) modeEl.style.display = (m === mode) ? '' : 'none';
-  });
-  if (mode === 'text') {
-    document.getElementById('chatInputRow').style.display = '';
-    document.getElementById('chatInput').focus();
-  } else {
-    document.getElementById('chatInputRow').style.display = 'none';
-  }
-}
-
-// ── SEND PITCH CONTENT (used by video + file modes) ──
-async function sendPitchContent(displayLabel, fullPrompt) {
-  document.getElementById('starterChips').style.display = 'none';
-  document.getElementById('sendBtn').disabled = true;
-
-  appendMsg('user', displayLabel);
-  history.push({ role: 'user', content: fullPrompt });
-
-  var typingId = appendTyping();
-
-  try {
-    var res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2048,
-        system: SYSTEM,
-        messages: history
-      })
-    });
-
-    var data = await res.json();
-    removeTyping(typingId);
-
-    if (data.error) {
-      var errMsg = data.error.type === 'authentication_error'
-        ? 'Invalid API key.'
-        : data.error.message || 'API error. Please try again.';
-      appendMsg('coach', errMsg);
-    } else {
-      var reply = data.content[0].text;
-      appendMsg('coach', reply);
-      history.push({ role: 'assistant', content: reply });
-    }
-  } catch (err) {
-    removeTyping(typingId);
-    appendMsg('coach', 'Network error. Check your connection and try again.');
-  }
-
-  document.getElementById('sendBtn').disabled = false;
-}
-
-// ── VIDEO TRANSCRIPTION ──
-async function transcribeVideo() {
-  var url = document.getElementById('videoUrlInput').value.trim();
-  if (!url) return;
-
-  var btn = document.getElementById('transcribeBtn');
-  var status = document.getElementById('transcribeStatus');
-  btn.disabled = true;
-  status.style.display = 'block';
-  status.textContent = 'Submitting video for transcription…';
-
-  try {
-    // Start the job
-    var submitRes = await fetch('/api/transcribe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url })
-    });
-    var job = await submitRes.json();
-    if (job.error) throw new Error(job.error);
-
-    // Poll until done
-    status.textContent = 'Transcribing… this usually takes 1–2 minutes.';
-    var result = job;
-    var attempts = 0;
-    while ((result.status === 'pending' || result.status === 'processing') && attempts < 60) {
-      await new Promise(function(r) { setTimeout(r, 4000); });
-      var pollRes = await fetch('/api/transcribe?id=' + result.id);
-      result = await pollRes.json();
-      attempts++;
-      if (result.status === 'processing') status.textContent = 'Still transcribing…';
-    }
-
-    if (result.status === 'error') throw new Error(result.errorMessage || 'Transcription failed.');
-    if (result.status !== 'done') throw new Error('Timed out waiting for transcription.');
-
-    // Feed into coach
-    status.style.display = 'none';
-    btn.disabled = false;
-    document.getElementById('videoUrlInput').value = '';
-    switchTab('text');
-
-    var transcript = result.transcriptionText;
-    var wordCount = transcript.trim().split(/\s+/).length;
-    var displayLabel = '\u25b6 Video pitch transcribed (' + wordCount + ' words) — analyzing…';
-    var fullPrompt = 'Please give me a full pitch teardown. Here is the transcript from my pitch video:\n\n' + transcript.slice(0, 8000);
-    sendPitchContent(displayLabel, fullPrompt);
-
-  } catch (err) {
-    status.textContent = 'Error: ' + err.message;
-    btn.disabled = false;
-  }
-}
-
-// ── FILE UPLOAD ──
-function handleFileDrop(e) {
-  e.preventDefault();
-  document.getElementById('fileDropZone').classList.remove('dragover');
-  var file = e.dataTransfer.files[0];
-  if (file) processFile(file);
-}
-
-function handleFileUpload(e) {
-  var file = e.target.files[0];
-  if (file) processFile(file);
-  e.target.value = '';
-}
-
-async function processFile(file) {
-  var zone = document.getElementById('fileDropZone');
-  var originalHTML = zone.innerHTML;
-  zone.textContent = 'Reading ' + file.name + '…';
-
-  try {
-    var text = '';
-    var lname = file.name.toLowerCase();
-    if (lname.endsWith('.pdf')) {
-      text = await extractPdf(file);
-    } else if (lname.endsWith('.docx') || lname.endsWith('.doc')) {
-      text = await extractDocx(file);
-    } else {
-      throw new Error('Please upload a PDF or Word (.docx) file.');
-    }
-
-    if (!text.trim()) throw new Error('Could not extract text from this file. Is it a scanned image PDF?');
-
-    zone.innerHTML = originalHTML;
-    switchTab('text');
-
-    var wordCount = text.trim().split(/\s+/).length;
-    var displayLabel = '\ud83d\udcc4 ' + file.name + ' uploaded (' + wordCount + ' words) — analyzing…';
-    var fullPrompt = 'Please give me a full pitch teardown. Here is the content from my pitch deck:\n\n' + text.slice(0, 8000);
-    sendPitchContent(displayLabel, fullPrompt);
-
-  } catch (err) {
-    zone.textContent = 'Error: ' + err.message + ' — click to try again';
-  }
-}
-
-async function extractPdf(file) {
-  if (typeof pdfjsLib === 'undefined') throw new Error('PDF library not loaded. Please refresh and try again.');
-  var arrayBuffer = await file.arrayBuffer();
-  var pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  var text = '';
-  for (var i = 1; i <= pdf.numPages; i++) {
-    var page = await pdf.getPage(i);
-    var content = await page.getTextContent();
-    text += content.items.map(function(item) { return item.str; }).join(' ') + '\n\n';
-  }
-  return text;
-}
-
-async function extractDocx(file) {
-  if (typeof mammoth === 'undefined') throw new Error('Word doc library not loaded. Please refresh and try again.');
-  var arrayBuffer = await file.arrayBuffer();
-  var result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-  return result.value;
-}
-
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>if(typeof pdfjsLib!=="undefined")pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
@@ -910,7 +731,7 @@ async function extractDocx(file) {
         <a href="#download" class="btn btn-outline">Get the Skill File</a>
       </div>
     </div>
-    <div class="punch-stack">
+    <div class="punch-stack" style="display:none">
       <div class="punch">
         <div class="punch-n">01</div>
         <div class="punch-body">
@@ -1632,6 +1453,150 @@ function appendTyping() {
 function removeTyping(id) {
   const el = document.getElementById(id);
   if (el) el.remove();
+}
+
+// ── INPUT TABS ──
+function switchTab(mode) {
+  ['text', 'video', 'file'].forEach(function(m) {
+    var tabEl = document.getElementById('tab-' + m);
+    if (tabEl) tabEl.classList.toggle('active', m === mode);
+  });
+  var textRow = document.getElementById('chatInputRow');
+  var videoDiv = document.getElementById('mode-video');
+  var fileDiv  = document.getElementById('mode-file');
+  if (mode === 'text')  { textRow.style.display = ''; videoDiv.style.display = 'none'; fileDiv.style.display = 'none'; document.getElementById('chatInput').focus(); }
+  if (mode === 'video') { textRow.style.display = 'none'; videoDiv.style.display = 'flex'; fileDiv.style.display = 'none'; document.getElementById('videoUrlInput').focus(); }
+  if (mode === 'file')  { textRow.style.display = 'none'; videoDiv.style.display = 'none'; fileDiv.style.display = ''; }
+}
+
+// ── SEND PITCH CONTENT (video + file) ──
+async function sendPitchContent(displayLabel, fullPrompt) {
+  document.getElementById('starterChips').style.display = 'none';
+  document.getElementById('sendBtn').disabled = true;
+  appendMsg('user', displayLabel);
+  history.push({ role: 'user', content: fullPrompt });
+  var typingId = appendTyping();
+  try {
+    var res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2048, system: SYSTEM, messages: history })
+    });
+    var data = await res.json();
+    removeTyping(typingId);
+    if (data.error) {
+      appendMsg('coach', data.error.message || 'API error. Please try again.');
+    } else {
+      var reply = data.content[0].text;
+      appendMsg('coach', reply);
+      history.push({ role: 'assistant', content: reply });
+    }
+  } catch(err) {
+    removeTyping(typingId);
+    appendMsg('coach', 'Network error. Check your connection and try again.');
+  }
+  document.getElementById('sendBtn').disabled = false;
+}
+
+// ── VIDEO TRANSCRIPTION ──
+async function transcribeVideo() {
+  var url = document.getElementById('videoUrlInput').value.trim();
+  if (!url) return;
+  var btn = document.getElementById('transcribeBtn');
+  var status = document.getElementById('transcribeStatus');
+  btn.disabled = true;
+  status.style.display = 'block';
+  status.textContent = 'Submitting video for transcription…';
+  try {
+    var submitRes = await fetch('/api/transcribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url })
+    });
+    var job = await submitRes.json();
+    if (job.error) throw new Error(job.error);
+    status.textContent = 'Transcribing… this usually takes 1–2 minutes.';
+    var result = job;
+    var attempts = 0;
+    while ((result.status === 'pending' || result.status === 'processing') && attempts < 60) {
+      await new Promise(function(r) { setTimeout(r, 4000); });
+      var pollRes = await fetch('/api/transcribe?id=' + result.id);
+      result = await pollRes.json();
+      attempts++;
+    }
+    if (result.status === 'error') throw new Error(result.errorMessage || 'Transcription failed.');
+    if (result.status !== 'done') throw new Error('Timed out waiting for transcription.');
+    status.style.display = 'none';
+    btn.disabled = false;
+    document.getElementById('videoUrlInput').value = '';
+    switchTab('text');
+    var wordCount = result.transcriptionText.trim().split(/\s+/).length;
+    sendPitchContent(
+      '▶ Video transcribed (' + wordCount + ' words) — analyzing…',
+      'Please give me a full pitch teardown. Here is the transcript from my pitch video:\n\n' + result.transcriptionText.slice(0, 8000)
+    );
+  } catch(err) {
+    status.textContent = 'Error: ' + err.message;
+    btn.disabled = false;
+  }
+}
+
+// ── FILE UPLOAD ──
+function handleFileDrop(e) {
+  e.preventDefault();
+  document.getElementById('fileDropZone').classList.remove('dragover');
+  var file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+function handleFileUpload(e) {
+  var file = e.target.files[0];
+  if (file) processFile(file);
+  e.target.value = '';
+}
+async function processFile(file) {
+  var zone = document.getElementById('fileDropZone');
+  var origHTML = zone.innerHTML;
+  zone.textContent = 'Reading ' + file.name + '…';
+  try {
+    var text = '';
+    var lname = file.name.toLowerCase();
+    if (lname.endsWith('.pdf')) {
+      text = await extractPdf(file);
+    } else if (lname.endsWith('.docx') || lname.endsWith('.doc')) {
+      text = await extractDocx(file);
+    } else {
+      throw new Error('Please upload a PDF or Word (.docx) file.');
+    }
+    if (!text.trim()) throw new Error('Could not extract text. Is this a scanned image PDF?');
+    zone.innerHTML = origHTML;
+    switchTab('text');
+    var wordCount = text.trim().split(/\s+/).length;
+    sendPitchContent(
+      '📄 ' + file.name + ' (' + wordCount + ' words) — analyzing…',
+      'Please give me a full pitch teardown. Here is the content from my pitch deck:\n\n' + text.slice(0, 8000)
+    );
+  } catch(err) {
+    zone.innerHTML = origHTML;
+    zone.querySelector('span') && (zone.querySelector('span').textContent = 'Error: ' + err.message + ' — click to try again');
+  }
+}
+async function extractPdf(file) {
+  if (typeof pdfjsLib === 'undefined') throw new Error('PDF library not loaded. Please refresh.');
+  var ab = await file.arrayBuffer();
+  var pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  var text = '';
+  for (var i = 1; i <= pdf.numPages; i++) {
+    var page = await pdf.getPage(i);
+    var c = await page.getTextContent();
+    text += c.items.map(function(x){ return x.str; }).join(' ') + '\n\n';
+  }
+  return text;
+}
+async function extractDocx(file) {
+  if (typeof mammoth === 'undefined') throw new Error('Word doc library not loaded. Please refresh.');
+  var ab = await file.arrayBuffer();
+  var result = await mammoth.extractRawText({ arrayBuffer: ab });
+  return result.value;
 }
 </script>
 </body>
