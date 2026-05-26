@@ -612,7 +612,280 @@ footer p {
   nav a:not(.cta) { display: none; }
   .chat-widget { height: 520px; }
 }
+
+/* ── INPUT TABS ── */
+.input-tabs {
+  display: flex;
+  border-top: 2px solid var(--ink);
+  flex-shrink: 0;
+}
+.input-tab {
+  flex: 1;
+  background: var(--cream);
+  border: none;
+  border-right: 1px solid var(--border);
+  padding: 0.55rem 0.5rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.input-tab:last-child { border-right: none; }
+.input-tab:hover { background: var(--amber-light); color: var(--ink); }
+.input-tab.active { background: var(--ink); color: var(--amber); }
+
+/* ── VIDEO INPUT ── */
+.video-input-row {
+  display: flex;
+  flex-shrink: 0;
+}
+#videoUrlInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 1rem 1.25rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem;
+  background: var(--white);
+  color: var(--ink);
+}
+#videoUrlInput::placeholder { color: #bbb; }
+#transcribeBtn {
+  background: var(--amber);
+  border: none;
+  border-left: 2px solid var(--ink);
+  padding: 0 1.25rem;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.18s;
+  flex-shrink: 0;
+}
+#transcribeBtn:hover { background: var(--ink); color: var(--amber); }
+#transcribeBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+.transcribe-status {
+  padding: 0.6rem 1.25rem;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--amber-dark);
+  background: var(--amber-light);
+  border-top: 1px solid var(--amber);
+  display: none;
+  flex-shrink: 0;
+}
+
+/* ── FILE DROP ZONE ── */
+.file-drop-zone {
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  background: var(--white);
+  transition: all 0.15s;
+  border-top: 2px dashed var(--border);
+  line-height: 1.8;
+}
+.file-drop-zone:hover,
+.file-drop-zone.dragover {
+  background: var(--amber-light);
+  color: var(--ink);
+  border-color: var(--amber);
+}
+
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
+// ── INPUT TABS ──
+function switchTab(mode) {
+  ['text', 'video', 'file'].forEach(function(m) {
+    var tabEl = document.getElementById('tab-' + m);
+    if (tabEl) tabEl.classList.toggle('active', m === mode);
+    var modeEl = document.getElementById('mode-' + m);
+    if (modeEl) modeEl.style.display = (m === mode) ? '' : 'none';
+  });
+  if (mode === 'text') {
+    document.getElementById('chatInputRow').style.display = '';
+    document.getElementById('chatInput').focus();
+  } else {
+    document.getElementById('chatInputRow').style.display = 'none';
+  }
+}
+
+// ── SEND PITCH CONTENT (used by video + file modes) ──
+async function sendPitchContent(displayLabel, fullPrompt) {
+  document.getElementById('starterChips').style.display = 'none';
+  document.getElementById('sendBtn').disabled = true;
+
+  appendMsg('user', displayLabel);
+  history.push({ role: 'user', content: fullPrompt });
+
+  var typingId = appendTyping();
+
+  try {
+    var res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2048,
+        system: SYSTEM,
+        messages: history
+      })
+    });
+
+    var data = await res.json();
+    removeTyping(typingId);
+
+    if (data.error) {
+      var errMsg = data.error.type === 'authentication_error'
+        ? 'Invalid API key.'
+        : data.error.message || 'API error. Please try again.';
+      appendMsg('coach', errMsg);
+    } else {
+      var reply = data.content[0].text;
+      appendMsg('coach', reply);
+      history.push({ role: 'assistant', content: reply });
+    }
+  } catch (err) {
+    removeTyping(typingId);
+    appendMsg('coach', 'Network error. Check your connection and try again.');
+  }
+
+  document.getElementById('sendBtn').disabled = false;
+}
+
+// ── VIDEO TRANSCRIPTION ──
+async function transcribeVideo() {
+  var url = document.getElementById('videoUrlInput').value.trim();
+  if (!url) return;
+
+  var btn = document.getElementById('transcribeBtn');
+  var status = document.getElementById('transcribeStatus');
+  btn.disabled = true;
+  status.style.display = 'block';
+  status.textContent = 'Submitting video for transcription…';
+
+  try {
+    // Start the job
+    var submitRes = await fetch('/api/transcribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url })
+    });
+    var job = await submitRes.json();
+    if (job.error) throw new Error(job.error);
+
+    // Poll until done
+    status.textContent = 'Transcribing… this usually takes 1–2 minutes.';
+    var result = job;
+    var attempts = 0;
+    while ((result.status === 'pending' || result.status === 'processing') && attempts < 60) {
+      await new Promise(function(r) { setTimeout(r, 4000); });
+      var pollRes = await fetch('/api/transcribe?id=' + result.id);
+      result = await pollRes.json();
+      attempts++;
+      if (result.status === 'processing') status.textContent = 'Still transcribing…';
+    }
+
+    if (result.status === 'error') throw new Error(result.errorMessage || 'Transcription failed.');
+    if (result.status !== 'done') throw new Error('Timed out waiting for transcription.');
+
+    // Feed into coach
+    status.style.display = 'none';
+    btn.disabled = false;
+    document.getElementById('videoUrlInput').value = '';
+    switchTab('text');
+
+    var transcript = result.transcriptionText;
+    var wordCount = transcript.trim().split(/\s+/).length;
+    var displayLabel = '\u25b6 Video pitch transcribed (' + wordCount + ' words) — analyzing…';
+    var fullPrompt = 'Please give me a full pitch teardown. Here is the transcript from my pitch video:\n\n' + transcript.slice(0, 8000);
+    sendPitchContent(displayLabel, fullPrompt);
+
+  } catch (err) {
+    status.textContent = 'Error: ' + err.message;
+    btn.disabled = false;
+  }
+}
+
+// ── FILE UPLOAD ──
+function handleFileDrop(e) {
+  e.preventDefault();
+  document.getElementById('fileDropZone').classList.remove('dragover');
+  var file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+
+function handleFileUpload(e) {
+  var file = e.target.files[0];
+  if (file) processFile(file);
+  e.target.value = '';
+}
+
+async function processFile(file) {
+  var zone = document.getElementById('fileDropZone');
+  var originalHTML = zone.innerHTML;
+  zone.textContent = 'Reading ' + file.name + '…';
+
+  try {
+    var text = '';
+    var lname = file.name.toLowerCase();
+    if (lname.endsWith('.pdf')) {
+      text = await extractPdf(file);
+    } else if (lname.endsWith('.docx') || lname.endsWith('.doc')) {
+      text = await extractDocx(file);
+    } else {
+      throw new Error('Please upload a PDF or Word (.docx) file.');
+    }
+
+    if (!text.trim()) throw new Error('Could not extract text from this file. Is it a scanned image PDF?');
+
+    zone.innerHTML = originalHTML;
+    switchTab('text');
+
+    var wordCount = text.trim().split(/\s+/).length;
+    var displayLabel = '\ud83d\udcc4 ' + file.name + ' uploaded (' + wordCount + ' words) — analyzing…';
+    var fullPrompt = 'Please give me a full pitch teardown. Here is the content from my pitch deck:\n\n' + text.slice(0, 8000);
+    sendPitchContent(displayLabel, fullPrompt);
+
+  } catch (err) {
+    zone.textContent = 'Error: ' + err.message + ' — click to try again';
+  }
+}
+
+async function extractPdf(file) {
+  if (typeof pdfjsLib === 'undefined') throw new Error('PDF library not loaded. Please refresh and try again.');
+  var arrayBuffer = await file.arrayBuffer();
+  var pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  var text = '';
+  for (var i = 1; i <= pdf.numPages; i++) {
+    var page = await pdf.getPage(i);
+    var content = await page.getTextContent();
+    text += content.items.map(function(item) { return item.str; }).join(' ') + '\n\n';
+  }
+  return text;
+}
+
+async function extractDocx(file) {
+  if (typeof mammoth === 'undefined') throw new Error('Word doc library not loaded. Please refresh and try again.');
+  var arrayBuffer = await file.arrayBuffer();
+  var result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+  return result.value;
+}
+
+</script>
+<script>if(typeof pdfjsLib!=="undefined")pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
 <body>
 
@@ -735,7 +1008,37 @@ footer p {
         </div>
 
 
-        <div class="chat-input-row" id="chatInputRow">
+
+        <!-- INPUT MODE TABS -->
+        <div class="input-tabs" id="inputTabs">
+          <button class="input-tab active" onclick="switchTab('text')" id="tab-text">&#9998; Text</button>
+          <button class="input-tab" onclick="switchTab('video')" id="tab-video">&#9654; Video URL</button>
+          <button class="input-tab" onclick="switchTab('file')" id="tab-file">&#8679; Upload File</button>
+        </div>
+
+        <!-- VIDEO MODE -->
+        <div id="mode-video" style="display:none; flex-direction:column; flex-shrink:0;">
+          <div class="video-input-row">
+            <input type="url" id="videoUrlInput" placeholder="Paste a Loom, YouTube, or MP4 URL…" onkeydown="if(event.key==='Enter')transcribeVideo()" />
+            <button id="transcribeBtn" onclick="transcribeVideo()">Transcribe &#10148;</button>
+          </div>
+          <div class="transcribe-status" id="transcribeStatus">Transcribing… this may take a minute.</div>
+        </div>
+
+        <!-- FILE MODE -->
+        <div id="mode-file" style="display:none; flex-shrink:0;">
+          <div class="file-drop-zone" id="fileDropZone"
+               onclick="document.getElementById('fileInput').click()"
+               ondragover="event.preventDefault();this.classList.add('dragover')"
+               ondragleave="this.classList.remove('dragover')"
+               ondrop="handleFileDrop(event)">
+            Drop a PDF or Word doc here<br>
+            <span style="opacity:0.6;font-size:0.6rem;">or click to browse &mdash; .pdf, .docx supported</span>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.doc" style="display:none" onchange="handleFileUpload(event)" />
+          </div>
+        </div>
+
+        <div class="chat-input-row" id="chatInputRow" id="mode-text">
           <textarea id="chatInput" placeholder="Paste your pitch or describe your startup…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
           <button id="sendBtn" onclick="sendMessage()">➤</button>
         </div>
@@ -1246,7 +1549,7 @@ async function sendMessage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
+        max_tokens: 2048,
         system: SYSTEM,
         messages: history
       })
