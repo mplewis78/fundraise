@@ -1258,16 +1258,22 @@ async function processFile(file) {
 }
 
 async function extractPdf(file) {
-  if (typeof pdfjsLib === 'undefined') throw new Error('PDF library not loaded. Please refresh.');
-  const ab = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-  let text = '';
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const c = await page.getTextContent();
-    text += c.items.map(x => x.str).join(' ') + '\n\n';
-  }
-  return text;
+  // Convert file to base64 and send to server-side extractor (more reliable than client-side PDF.js)
+  const base64 = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  const res = await fetch('/api/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: base64 })
+  });
+  const result = await res.json();
+  if (result.error) throw new Error(result.error);
+  return result.text;
 }
 
 async function extractDocx(file) {
