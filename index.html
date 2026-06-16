@@ -849,6 +849,17 @@ async function sendMessage() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
   if (!text) return;
+
+  // Guard: if message looks like just a URL, redirect instead of hallucinating
+  if (/^https?:\/\/\S+$/.test(text)) {
+    input.value = '';
+    if (text.includes('fireflies.ai') || text.includes('loom.com') || text.includes('youtube.com') || text.includes('youtu.be')) {
+      appendMsg('coach', "That looks like a video or meeting link. Paste it into the <strong>▶ Video URL</strong> tab to transcribe it first, then I can give you a full teardown.");
+    } else {
+      appendMsg('coach', "That looks like a link rather than pitch content. If it's a video or Fireflies recording, use the <strong>▶ Video URL</strong> tab. If it's a PDF or doc, use the <strong>⇧ Upload File</strong> tab.");
+    }
+    return;
+  }
   input.value = ''; input.style.height = 'auto';
   document.getElementById('starterChips').style.display = 'none';
   document.getElementById('sendBtn').disabled = true;
@@ -859,12 +870,12 @@ async function sendMessage() {
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2048, system: SYSTEM, messages: history })
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2048, system: SYSTEM, messages: history })
     });
     const data = await res.json();
     removeTyping(typingId);
     if (data.error) {
-      appendMsg('coach', data.error.type === 'authentication_error' ? 'Invalid API key.' : data.error.message || 'API error.');
+      appendMsg('coach', '⚠️ API Error: ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
     } else {
       const reply = data.content[0].text;
       appendMsg('coach', reply);
@@ -938,11 +949,11 @@ async function sendPitchContent(displayLabel, fullPrompt) {
   try {
     const res = await fetch('/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2048, system: SYSTEM, messages: history })
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2048, system: SYSTEM, messages: history })
     });
     const data = await res.json();
     removeTyping(typingId);
-    if (data.error) { appendMsg('coach', data.error.message || 'API error.'); }
+    if (data.error) { appendMsg('coach', '⚠️ API Error: ' + (data.error.message || data.error.type || JSON.stringify(data.error))); }
     else { const reply = data.content[0].text; appendMsg('coach', reply); history.push({ role: 'assistant', content: reply }); }
   } catch(err) { removeTyping(typingId); appendMsg('coach', 'Network error.'); }
   document.getElementById('sendBtn').disabled = false;
@@ -956,23 +967,42 @@ async function transcribeVideo() {
   btn.disabled = true; status.style.display = 'block';
   status.textContent = 'Submitting video for transcription…';
   try {
-    const submitRes = await fetch('/api/transcribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
-    let result = await submitRes.json();
-    if (result.error) throw new Error(result.error);
-    status.textContent = 'Transcribing… this usually takes 1–2 minutes.';
-    let attempts = 0;
-    while ((result.status === 'pending' || result.status === 'processing') && attempts < 60) {
-      await new Promise(r => setTimeout(r, 4000));
-      const pollRes = await fetch('/api/transcribe?id=' + result.id);
-      result = await pollRes.json(); attempts++;
+    let result;
+
+    if (url.includes('fireflies.ai')) {
+      // Fireflies — synchronous, no polling needed
+      status.textContent = 'Importing from Fireflies…';
+      const ffRes = await fetch('/api/transcribe?action=from-fireflies', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
+      result = await ffRes.json();
+      if (result.error) throw new Error(result.error);
+      if (result.status !== 'done') throw new Error('Fireflies import did not complete.');
+    } else {
+      // Video/audio URL — async, poll for completion
+      const submitRes = await fetch('/api/transcribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
+      result = await submitRes.json();
+      if (result.error) throw new Error(result.error);
+      status.textContent = 'Transcribing… this usually takes 1–2 minutes.';
+      let attempts = 0;
+      while ((result.status === 'pending' || result.status === 'processing') && attempts < 60) {
+        await new Promise(r => setTimeout(r, 4000));
+        const pollRes = await fetch('/api/transcribe?id=' + result.id);
+        result = await pollRes.json(); attempts++;
+      }
+      if (result.status === 'error') throw new Error(result.errorMessage || 'Transcription failed.');
+      if (result.status !== 'done') throw new Error('Timed out waiting for transcription.');
     }
-    if (result.status === 'error') throw new Error(result.errorMessage || 'Transcription failed.');
-    if (result.status !== 'done') throw new Error('Timed out waiting for transcription.');
+
     status.style.display = 'none'; btn.disabled = false;
     document.getElementById('videoUrlInput').value = '';
     switchTab('text');
     const wordCount = result.transcriptionText.trim().split(/\s+/).length;
-    sendPitchContent('▶ Video transcribed (' + wordCount + ' words) — analyzing…', 'Please give me a full pitch teardown. Here is the transcript:\n\n' + result.transcriptionText.slice(0, 8000));
+    const label = url.includes('fireflies.ai')
+      ? '🎙 Fireflies meeting imported (' + wordCount + ' words) — analyzing…'
+      : '▶ Video transcribed (' + wordCount + ' words) — analyzing…';
+    sendPitchContent(label, 'Please give me a full pitch teardown. Here is the transcript:\n\n' + result.transcriptionText.slice(0, 8000));
   } catch(err) { status.textContent = 'Error: ' + err.message; btn.disabled = false; }
 }
 

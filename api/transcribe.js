@@ -19,7 +19,7 @@ export default async function handler(req, res) {
         return res.status(r.status).json(await r.json());
       }
 
-      // Step 3 of file upload: start transcription/extraction from stored object
+      // Step 3 of file upload: start transcription from stored object
       if (action === 'from-storage') {
         const { objectPath, filename } = req.body;
         const r = await fetch(`${BASE}/transcriptions/from-object-storage`, {
@@ -30,7 +30,19 @@ export default async function handler(req, res) {
         return res.status(r.status).json(await r.json());
       }
 
-      // Default: transcribe from a public video URL
+      // Fireflies meeting link — returns instantly, no polling needed
+      if (action === 'from-fireflies') {
+        const { url } = req.body;
+        if (!url) return res.status(400).json({ error: 'URL required.' });
+        const r = await fetch(`${BASE}/transcriptions/from-fireflies`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+        return res.status(r.status).json(await r.json());
+      }
+
+      // Default: transcribe from a public video/audio URL
       const { url } = req.body;
       if (!url) return res.status(400).json({ error: 'URL required.' });
       const r = await fetch(`${BASE}/transcriptions/from-url`, {
