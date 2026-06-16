@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Founder Pitch Coach — Enjoy The Work</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -728,9 +729,9 @@ footer p {
                ondragover="event.preventDefault();this.classList.add('dragover')"
                ondragleave="this.classList.remove('dragover')"
                ondrop="handleFileDrop(event)">
-            Drop a PDF or Word doc here<br>
-            <span style="opacity:0.6;font-size:0.6rem;">or click to browse — .pdf, .docx supported</span>
-            <input type="file" id="fileInput" accept=".pdf,.docx,.doc" style="display:none" onchange="handleFileUpload(event)" />
+            Drop a PDF, Word doc, or PowerPoint here<br>
+            <span style="opacity:0.6;font-size:0.6rem;">or click to browse — .pdf, .docx, .pptx supported</span>
+            <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.pptx" style="display:none" onchange="handleFileUpload(event)" />
           </div>
         </div>
 
@@ -1014,9 +1015,60 @@ function handleFileDrop(e) {
 }
 function handleFileUpload(e) { const file = e.target.files[0]; if (file) processFile(file); e.target.value = ''; }
 
+async function extractPptxText(file) {
+  const zip = await JSZip.loadAsync(file);
+  const slideFiles = Object.keys(zip.files)
+    .filter(n => /^ppt\/slides\/slide[0-9]+\.xml$/.test(n))
+    .sort((a, b) => {
+      const na = parseInt(a.match(/slide([0-9]+)/)[1]);
+      const nb = parseInt(b.match(/slide([0-9]+)/)[1]);
+      return na - nb;
+    });
+
+  if (!slideFiles.length) throw new Error('No slides found in this file.');
+
+  const parts = [];
+  for (const name of slideFiles) {
+    const xml = await zip.files[name].async('string');
+    // Strip XML tags, collapse whitespace, dedupe blank lines
+    const text = xml
+      .replace(/<a:r[^>]*>[\s\S]*?<\/a:r>/g, m => {
+        const t = m.replace(/<[^>]+>/g, '').trim();
+        return t ? t + ' ' : '';
+      })
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (text) parts.push(text);
+  }
+
+  if (!parts.join('').trim()) throw new Error('No readable text found in this deck — it may use image-based slides.');
+  return parts.map((t, i) => `[Slide ${i + 1}]\n${t}`).join('\n\n');
+}
+
 async function processFile(file) {
   const zone = document.getElementById('fileDropZone');
   const origHTML = zone.innerHTML;
+
+  // PPTX: extract client-side, skip Replit entirely
+  if (/\.pptx$/i.test(file.name)) {
+    try {
+      zone.textContent = 'Reading ' + file.name + '…';
+      const text = await extractPptxText(file);
+      zone.innerHTML = origHTML;
+      switchTab('text');
+      const wordCount = text.trim().split(/\s+/).length;
+      sendPitchContent('📊 ' + file.name + ' (' + wordCount + ' words) — analyzing…',
+        'Please give me a full pitch teardown. Here is the deck content:\n\n' + text.slice(0, 8000));
+    } catch (err) {
+      zone.innerHTML = origHTML;
+      const span = zone.querySelector('span');
+      const msg = 'Error: ' + err.message + ' — click to try again';
+      if (span) span.textContent = msg; else zone.textContent = msg;
+    }
+    document.getElementById('fileInput').value = '';
+    return;
+  }
 
   try {
     // Step 1: Request a presigned GCS upload URL
