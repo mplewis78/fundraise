@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Founder Pitch Coach — Enjoy The Work</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1015,6 +1016,58 @@ function handleFileDrop(e) {
 }
 function handleFileUpload(e) { const file = e.target.files[0]; if (file) processFile(file); e.target.value = ''; }
 
+async function extractPdfAsImages(file) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const numPages = Math.min(pdf.numPages, 20); // Claude supports up to 20 images
+  const images = [];
+  for (let i = 1; i <= numPages; i++) {
+    const page = await pdf.getPage(i);
+    const viewport = page.getViewport({ scale: 1.2 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    images.push(canvas.toDataURL('image/jpeg', 0.82).split(',')[1]);
+  }
+  return { images, total: pdf.numPages };
+}
+
+async function sendPitchWithImages(displayLabel, images, totalPages) {
+  document.getElementById('starterChips').style.display = 'none';
+  document.getElementById('sendBtn').disabled = true;
+  appendMsg('user', displayLabel);
+  const note = totalPages > 20 ? ' (first 20 of ' + totalPages + ' pages shown)' : '';
+  const prompt = 'Please give me a full pitch teardown of this deck' + note + '. Analyze each slide and give me your sharpest feedback.';
+  // Build content array: images + text prompt
+  const content = [
+    ...images.map(data => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data } })),
+    { type: 'text', text: prompt }
+  ];
+  history.push({ role: 'user', content });
+  const typingId = appendTyping();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, system: SYSTEM, messages: history })
+    });
+    const data = await res.json();
+    removeTyping(typingId);
+    if (data.error) {
+      appendMsg('coach', '⚠️ API Error: ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
+      history.pop();
+    } else {
+      const reply = data.content[0].text;
+      // Replace image content with a text placeholder so follow-ups don't re-send all images
+      history[history.length - 1] = { role: 'user', content: '[Pitch deck: ' + images.length + ' slides uploaded as images]' };
+      history.push({ role: 'assistant', content: reply });
+      appendMsg('coach', reply);
+    }
+  } catch(err) { removeTyping(typingId); appendMsg('coach', 'Network error.'); }
+  document.getElementById('sendBtn').disabled = false;
+}
+
 async function extractPptxText(file) {
   const zip = await JSZip.loadAsync(file);
   const slideFiles = Object.keys(zip.files)
@@ -1060,6 +1113,25 @@ async function processFile(file) {
       const wordCount = text.trim().split(/\s+/).length;
       sendPitchContent('📊 ' + file.name + ' (' + wordCount + ' words) — analyzing…',
         'Please give me a full pitch teardown. Here is the deck content:\n\n' + text.slice(0, 8000));
+    } catch (err) {
+      zone.innerHTML = origHTML;
+      const span = zone.querySelector('span');
+      const msg = 'Error: ' + err.message + ' — click to try again';
+      if (span) span.textContent = msg; else zone.textContent = msg;
+    }
+    document.getElementById('fileInput').value = '';
+    return;
+  }
+
+  // PDF: render pages as images and send to Claude vision
+  if (/\.pdf$/i.test(file.name)) {
+    try {
+      zone.textContent = 'Reading ' + file.name + '…';
+      const { images, total } = await extractPdfAsImages(file);
+      zone.innerHTML = origHTML;
+      switchTab('text');
+      const label = '📄 ' + file.name + ' (' + total + ' slides) — analyzing…';
+      await sendPitchWithImages(label, images, total);
     } catch (err) {
       zone.innerHTML = origHTML;
       const span = zone.querySelector('span');
