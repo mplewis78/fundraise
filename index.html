@@ -1016,7 +1016,27 @@ function handleFileDrop(e) {
 }
 function handleFileUpload(e) { const file = e.target.files[0]; if (file) processFile(file); e.target.value = ''; }
 
+// Read any file as base64 (strips the "data:...;base64," prefix)
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = String(reader.result || '');
+      const comma = result.indexOf(',');
+      const data = comma >= 0 ? result.slice(comma + 1) : '';
+      if (!data) reject(new Error('Could not read the file.'));
+      else resolve(data);
+    };
+    reader.onerror = () => reject(new Error('Could not read the file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+// Fallback path for large decks: render pages to images in the browser
 async function extractPdfAsImages(file) {
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error('the PDF reader did not load — please refresh the page and try again');
+  }
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -1029,9 +1049,56 @@ async function extractPdfAsImages(file) {
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-    images.push(canvas.toDataURL('image/jpeg', 0.82).split(',')[1]);
+    const data = canvas.toDataURL('image/jpeg', 0.82).split(',')[1];
+    if (data) images.push(data);
+  }
+  if (!images.length) {
+    throw new Error('this PDF could not be read — try re-saving it as a PDF, or paste your pitch text');
   }
   return { images, total: pdf.numPages };
+}
+
+// Primary path: hand the actual PDF to Claude (reads text + slide visuals natively)
+async function sendPitchWithPdf(displayLabel, base64Pdf, filename) {
+  document.getElementById('starterChips').style.display = 'none';
+  document.getElementById('sendBtn').disabled = true;
+  appendMsg('user', displayLabel);
+  const prompt = 'Please give me a full pitch teardown of this deck. Go slide by slide and give me your sharpest, most specific feedback.';
+  const content = [
+    { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Pdf } },
+    { type: 'text', text: prompt }
+  ];
+  history.push({ role: 'user', content });
+  const typingId = appendTyping();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, system: SYSTEM, messages: history })
+    });
+    if (res.status === 413) {
+      removeTyping(typingId);
+      appendMsg('coach', 'That deck is a little too large to read directly. Re-export it as a smaller PDF (under ~3MB) or paste your pitch text and I\'ll take it from there.');
+      history.pop();
+      document.getElementById('sendBtn').disabled = false;
+      return;
+    }
+    const data = await res.json();
+    removeTyping(typingId);
+    if (data.error) {
+      appendMsg('coach', '⚠️ ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
+      history.pop();
+    } else if (!data.content || !data.content[0] || !data.content[0].text) {
+      appendMsg('coach', 'I couldn\'t pull any content out of that deck. Try re-saving it as a PDF, or paste your pitch text into the chat.');
+      history.pop();
+    } else {
+      const reply = data.content[0].text;
+      // Swap the PDF for a short placeholder so follow-up messages don't re-send the whole file
+      history[history.length - 1] = { role: 'user', content: '[Pitch deck uploaded: ' + filename + ']' };
+      history.push({ role: 'assistant', content: reply });
+      appendMsg('coach', reply);
+    }
+  } catch(err) { removeTyping(typingId); appendMsg('coach', 'Network error while reading the deck. Please try again.'); }
+  document.getElementById('sendBtn').disabled = false;
 }
 
 async function sendPitchWithImages(displayLabel, images, totalPages) {
@@ -1052,10 +1119,20 @@ async function sendPitchWithImages(displayLabel, images, totalPages) {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, system: SYSTEM, messages: history })
     });
+    if (res.status === 413) {
+      removeTyping(typingId);
+      appendMsg('coach', 'That deck is a little too large to read directly. Re-export it as a smaller PDF or paste your pitch text and I\'ll take it from there.');
+      history.pop();
+      document.getElementById('sendBtn').disabled = false;
+      return;
+    }
     const data = await res.json();
     removeTyping(typingId);
     if (data.error) {
       appendMsg('coach', '⚠️ API Error: ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
+      history.pop();
+    } else if (!data.content || !data.content[0] || !data.content[0].text) {
+      appendMsg('coach', 'I couldn\'t read that deck. Try re-saving it as a PDF, or paste your pitch text into the chat.');
       history.pop();
     } else {
       const reply = data.content[0].text;
@@ -1123,15 +1200,26 @@ async function processFile(file) {
     return;
   }
 
-  // PDF: render pages as images and send to Claude vision
+  // PDF: hand the real file to Claude natively (reads text + visuals). For very
+  // large decks, fall back to rendering pages as images so nothing 413s.
   if (/\.pdf$/i.test(file.name)) {
+    const NATIVE_MAX = 3 * 1024 * 1024; // ~3MB source keeps the request under the serverless body limit
     try {
       zone.textContent = 'Reading ' + file.name + '…';
-      const { images, total } = await extractPdfAsImages(file);
-      zone.innerHTML = origHTML;
-      switchTab('text');
-      const label = '📄 ' + file.name + ' (' + total + ' slides) — analyzing…';
-      await sendPitchWithImages(label, images, total);
+      if (file.size <= NATIVE_MAX) {
+        const base64Pdf = await fileToBase64(file);
+        zone.innerHTML = origHTML;
+        switchTab('text');
+        const label = '📄 ' + file.name + ' — analyzing…';
+        await sendPitchWithPdf(label, base64Pdf, file.name);
+      } else {
+        // Large deck: compress pages to images in the browser instead
+        const { images, total } = await extractPdfAsImages(file);
+        zone.innerHTML = origHTML;
+        switchTab('text');
+        const label = '📄 ' + file.name + ' (' + total + ' slides) — analyzing…';
+        await sendPitchWithImages(label, images, total);
+      }
     } catch (err) {
       zone.innerHTML = origHTML;
       const span = zone.querySelector('span');
