@@ -283,6 +283,15 @@ h2 em { font-style: italic; font-weight: 400; }
   color: rgba(255,255,255,0.3);
   letter-spacing: 0.06em;
 }
+.chat-topbar-right { display: flex; align-items: center; gap: 0.8rem; }
+.newpitch-btn {
+  font-family: 'Inter', sans-serif; font-size: 0.6rem; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: rgba(255,255,255,0.75); background: transparent;
+  border: 1px solid rgba(255,255,255,0.25); border-radius: 2px;
+  padding: 0.28rem 0.6rem; cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.newpitch-btn:hover { border-color: var(--gold); color: var(--gold); }
 
 .chat-messages {
   flex: 1;
@@ -734,7 +743,10 @@ footer p {
             <div class="chat-dot"></div>
             <span class="chat-topbar-name">Founder Pitch Coach</span>
           </div>
-          <span class="chat-status" id="chatStatusText">Powered by Claude</span>
+          <div class="chat-topbar-right">
+            <button class="newpitch-btn" type="button" onclick="resetConversation(true)" title="Clear this conversation and start a new pitch">↺ New pitch</button>
+            <span class="chat-status" id="chatStatusText">Powered by Claude</span>
+          </div>
         </div>
 
         <div class="chat-messages" id="chatMessages">
@@ -857,21 +869,111 @@ footer p {
 <script>
 let history = [];
 let SYSTEM = '';
-let notified = false;
+let sessionId = Math.random().toString(36).slice(2, 8);
+let pendingDeck = null;      // deck awaiting the founder's stage/investor answer
+let initialChatHTML = '';    // captured welcome state, for "New pitch" reset
 
-// Fire-and-forget: tell Mike someone started a session (once per visit)
-function notifyUsage(snippet) {
+// Build a readable text transcript of the conversation for debugging emails
+function buildTranscript() {
+  return history.map(m => {
+    let text;
+    if (typeof m.content === 'string') {
+      text = m.content;
+    } else if (Array.isArray(m.content)) {
+      text = m.content.map(b => {
+        if (b.type === 'text') return b.text;
+        if (b.type === 'document') return '[PDF deck attached]';
+        if (b.type === 'image') return '[slide image attached]';
+        return '';
+      }).filter(Boolean).join('\n');
+    } else {
+      text = '';
+    }
+    return (m.role === 'assistant' ? 'COACH' : 'FOUNDER') + ':\n' + text;
+  }).join('\n\n----------\n\n');
+}
+
+// Fire-and-forget: email Mike the running transcript (once per coach reply)
+function emailTranscript() {
   try {
     fetch('/api/notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        snippet: String(snippet || '').slice(0, 600),
+        sessionId,
+        count: history.length,
+        transcript: buildTranscript().slice(0, 100000),
         ts: new Date().toISOString(),
         ua: navigator.userAgent || ''
       })
     }).catch(() => {});
   } catch (e) { /* never block the founder's experience */ }
+}
+
+// Clear the conversation. showWelcome=true restores the opening message + chips.
+function resetConversation(showWelcome) {
+  history = [];
+  pendingDeck = null;
+  const msgs = document.getElementById('chatMessages');
+  const chips = document.getElementById('starterChips');
+  const inp = document.getElementById('chatInput');
+  if (msgs) msgs.innerHTML = showWelcome ? initialChatHTML : '';
+  if (chips) chips.style.display = showWelcome ? '' : 'none';
+  if (inp) inp.placeholder = 'Paste your pitch or describe your startup…';
+  if (showWelcome) switchTab('text');
+}
+
+// Reset history + canvas and ask the calibration question before analyzing a deck
+function startDeckAnalysis(userLabel, deckContent, placeholder) {
+  resetConversation(false);
+  pendingDeck = { content: deckContent, placeholder: placeholder };
+  appendMsg('user', userLabel);
+  appendMsg('coach', "Before I dig in — what stage is this raise (pre-seed, seed, or Series A), and who are you primarily pitching (angels, seed funds, or larger multi-stage funds)? That calibrates the teardown.");
+  switchTab('text');
+  const inp = document.getElementById('chatInput');
+  if (inp) { inp.placeholder = 'Answer stage + investor type to get your teardown…'; inp.focus(); }
+}
+
+// Send the deck + calibration answer as one turn and render the teardown
+async function runTeardown(content, placeholder) {
+  document.getElementById('sendBtn').disabled = true;
+  history.push({ role: 'user', content });
+  const typingId = appendTyping();
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, system: SYSTEM, messages: history })
+    });
+    if (res.status === 413) {
+      removeTyping(typingId);
+      appendMsg('coach', 'That deck is a little too large to read directly. Re-export it as a smaller PDF (under ~3MB) or paste your pitch text and I\'ll take it from there.');
+      history.pop();
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('chatInput').focus();
+      return;
+    }
+    const data = await res.json();
+    removeTyping(typingId);
+    if (data.error) {
+      appendMsg('coach', '⚠️ ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
+      history.pop();
+    } else if (!data.content || !data.content[0] || !data.content[0].text) {
+      appendMsg('coach', 'I couldn\'t read that deck. Try re-saving it as a PDF, or paste your pitch text into the chat.');
+      history.pop();
+    } else {
+      const reply = data.content[0].text;
+      history.push({ role: 'assistant', content: reply });
+      appendMsg('coach', reply);
+      emailTranscript();
+      // Swap the deck for a short placeholder so follow-ups don't re-send the whole file
+      if (placeholder) history[history.length - 2] = { role: 'user', content: placeholder };
+    }
+  } catch (err) {
+    removeTyping(typingId);
+    appendMsg('coach', 'Network error while reading the deck. Please try again.');
+  }
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('chatInput').focus();
 }
 
 // ── LOAD SKILL FROM FILE (single source of truth) ──
@@ -888,6 +990,8 @@ async function loadSkill() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+  const msgs = document.getElementById('chatMessages');
+  if (msgs) initialChatHTML = msgs.innerHTML; // snapshot the welcome state for "New pitch"
   await loadSkill();
   document.getElementById('chatStatusText').textContent = 'Online · Claude Sonnet';
   document.getElementById('chatInput').focus();
@@ -912,6 +1016,21 @@ async function sendMessage() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
   if (!text) return;
+
+  // If a deck is waiting on the founder's stage/investor answer, this message IS that
+  // answer — send the deck + calibration together and run the teardown.
+  if (pendingDeck) {
+    const pd = pendingDeck; pendingDeck = null;
+    input.value = ''; input.style.height = 'auto';
+    input.placeholder = 'Paste your pitch or describe your startup…';
+    document.getElementById('starterChips').style.display = 'none';
+    appendMsg('user', text);
+    const content = pd.content.concat([{ type: 'text', text:
+      'For calibration, here is the raise context: ' + text +
+      '\n\nNow give me your full, slide-by-slide teardown of the pitch above.' }]);
+    await runTeardown(content, pd.placeholder);
+    return;
+  }
 
   // Guard: if message looks like just a URL, redirect instead of hallucinating
   if (/^https?:\/\/\S+$/.test(text)) {
@@ -943,6 +1062,7 @@ async function sendMessage() {
       const reply = data.content[0].text;
       appendMsg('coach', reply);
       history.push({ role: 'assistant', content: reply });
+      emailTranscript();
     }
   } catch (err) {
     removeTyping(typingId);
@@ -989,8 +1109,6 @@ function appendMsg(role, text) {
   }
   div.appendChild(avatar); div.appendChild(bubble);
   msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
-  // Fire a one-time usage notification on the founder's first message
-  if (role === 'user' && !notified) { notified = true; notifyUsage(text); }
   return div;
 }
 
@@ -1057,25 +1175,6 @@ function switchTab(mode) {
   if (mode==='file')  { textRow.style.display='none'; videoDiv.style.display='none'; fileDiv.style.display=''; }
 }
 
-async function sendPitchContent(displayLabel, fullPrompt) {
-  document.getElementById('starterChips').style.display = 'none';
-  document.getElementById('sendBtn').disabled = true;
-  appendMsg('user', displayLabel);
-  history.push({ role: 'user', content: fullPrompt });
-  const typingId = appendTyping();
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2048, system: SYSTEM, messages: history })
-    });
-    const data = await res.json();
-    removeTyping(typingId);
-    if (data.error) { appendMsg('coach', '⚠️ API Error: ' + (data.error.message || data.error.type || JSON.stringify(data.error))); }
-    else { const reply = data.content[0].text; appendMsg('coach', reply); history.push({ role: 'assistant', content: reply }); }
-  } catch(err) { removeTyping(typingId); appendMsg('coach', 'Network error.'); }
-  document.getElementById('sendBtn').disabled = false;
-}
-
 async function transcribeVideo() {
   const url = document.getElementById('videoUrlInput').value.trim();
   if (!url) return;
@@ -1117,9 +1216,11 @@ async function transcribeVideo() {
     switchTab('text');
     const wordCount = result.transcriptionText.trim().split(/\s+/).length;
     const label = url.includes('fireflies.ai')
-      ? '🎙 Fireflies meeting imported (' + wordCount + ' words) — analyzing…'
-      : '▶ Video transcribed (' + wordCount + ' words) — analyzing…';
-    sendPitchContent(label, 'Please give me a full pitch teardown. Here is the transcript:\n\n' + result.transcriptionText.slice(0, 8000));
+      ? '🎙 Fireflies meeting imported (' + wordCount + ' words)'
+      : '▶ Video transcribed (' + wordCount + ' words)';
+    startDeckAnalysis(label,
+      [{ type: 'text', text: 'Here is my pitch (video/meeting transcript):\n\n' + result.transcriptionText.slice(0, 8000) }],
+      null);
   } catch(err) { status.textContent = 'Error: ' + err.message; btn.disabled = false; }
 }
 
@@ -1173,93 +1274,6 @@ async function extractPdfAsImages(file) {
   return { images, total: pdf.numPages };
 }
 
-// Primary path: hand the actual PDF to Claude (reads text + slide visuals natively)
-async function sendPitchWithPdf(displayLabel, base64Pdf, filename) {
-  document.getElementById('starterChips').style.display = 'none';
-  document.getElementById('sendBtn').disabled = true;
-  appendMsg('user', displayLabel);
-  const prompt = 'Please give me a full pitch teardown of this deck. Go slide by slide and give me your sharpest, most specific feedback.';
-  const content = [
-    { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Pdf } },
-    { type: 'text', text: prompt }
-  ];
-  history.push({ role: 'user', content });
-  const typingId = appendTyping();
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, system: SYSTEM, messages: history })
-    });
-    if (res.status === 413) {
-      removeTyping(typingId);
-      appendMsg('coach', 'That deck is a little too large to read directly. Re-export it as a smaller PDF (under ~3MB) or paste your pitch text and I\'ll take it from there.');
-      history.pop();
-      document.getElementById('sendBtn').disabled = false;
-      return;
-    }
-    const data = await res.json();
-    removeTyping(typingId);
-    if (data.error) {
-      appendMsg('coach', '⚠️ ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
-      history.pop();
-    } else if (!data.content || !data.content[0] || !data.content[0].text) {
-      appendMsg('coach', 'I couldn\'t pull any content out of that deck. Try re-saving it as a PDF, or paste your pitch text into the chat.');
-      history.pop();
-    } else {
-      const reply = data.content[0].text;
-      // Swap the PDF for a short placeholder so follow-up messages don't re-send the whole file
-      history[history.length - 1] = { role: 'user', content: '[Pitch deck uploaded: ' + filename + ']' };
-      history.push({ role: 'assistant', content: reply });
-      appendMsg('coach', reply);
-    }
-  } catch(err) { removeTyping(typingId); appendMsg('coach', 'Network error while reading the deck. Please try again.'); }
-  document.getElementById('sendBtn').disabled = false;
-}
-
-async function sendPitchWithImages(displayLabel, images, totalPages) {
-  document.getElementById('starterChips').style.display = 'none';
-  document.getElementById('sendBtn').disabled = true;
-  appendMsg('user', displayLabel);
-  const note = totalPages > 20 ? ' (first 20 of ' + totalPages + ' pages shown)' : '';
-  const prompt = 'Please give me a full pitch teardown of this deck' + note + '. Analyze each slide and give me your sharpest feedback.';
-  // Build content array: images + text prompt
-  const content = [
-    ...images.map(data => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data } })),
-    { type: 'text', text: prompt }
-  ];
-  history.push({ role: 'user', content });
-  const typingId = appendTyping();
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, system: SYSTEM, messages: history })
-    });
-    if (res.status === 413) {
-      removeTyping(typingId);
-      appendMsg('coach', 'That deck is a little too large to read directly. Re-export it as a smaller PDF or paste your pitch text and I\'ll take it from there.');
-      history.pop();
-      document.getElementById('sendBtn').disabled = false;
-      return;
-    }
-    const data = await res.json();
-    removeTyping(typingId);
-    if (data.error) {
-      appendMsg('coach', '⚠️ API Error: ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
-      history.pop();
-    } else if (!data.content || !data.content[0] || !data.content[0].text) {
-      appendMsg('coach', 'I couldn\'t read that deck. Try re-saving it as a PDF, or paste your pitch text into the chat.');
-      history.pop();
-    } else {
-      const reply = data.content[0].text;
-      // Replace image content with a text placeholder so follow-ups don't re-send all images
-      history[history.length - 1] = { role: 'user', content: '[Pitch deck: ' + images.length + ' slides uploaded as images]' };
-      history.push({ role: 'assistant', content: reply });
-      appendMsg('coach', reply);
-    }
-  } catch(err) { removeTyping(typingId); appendMsg('coach', 'Network error.'); }
-  document.getElementById('sendBtn').disabled = false;
-}
-
 async function extractPptxText(file) {
   const zip = await JSZip.loadAsync(file);
   const slideFiles = Object.keys(zip.files)
@@ -1303,8 +1317,9 @@ async function processFile(file) {
       zone.innerHTML = origHTML;
       switchTab('text');
       const wordCount = text.trim().split(/\s+/).length;
-      sendPitchContent('📊 ' + file.name + ' (' + wordCount + ' words) — analyzing…',
-        'Please give me a full pitch teardown. Here is the deck content:\n\n' + text.slice(0, 8000));
+      startDeckAnalysis('📊 ' + file.name + ' (' + wordCount + ' words)',
+        [{ type: 'text', text: 'Here is my pitch deck content:\n\n' + text.slice(0, 8000) }],
+        null);
     } catch (err) {
       zone.innerHTML = origHTML;
       const span = zone.querySelector('span');
@@ -1324,16 +1339,16 @@ async function processFile(file) {
       if (file.size <= NATIVE_MAX) {
         const base64Pdf = await fileToBase64(file);
         zone.innerHTML = origHTML;
-        switchTab('text');
-        const label = '📄 ' + file.name + ' — analyzing…';
-        await sendPitchWithPdf(label, base64Pdf, file.name);
+        startDeckAnalysis('📄 ' + file.name,
+          [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Pdf } }],
+          '[Pitch deck uploaded: ' + file.name + ']');
       } else {
         // Large deck: compress pages to images in the browser instead
         const { images, total } = await extractPdfAsImages(file);
         zone.innerHTML = origHTML;
-        switchTab('text');
-        const label = '📄 ' + file.name + ' (' + total + ' slides) — analyzing…';
-        await sendPitchWithImages(label, images, total);
+        startDeckAnalysis('📄 ' + file.name + ' (' + total + ' slides)',
+          images.map(d => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: d } })),
+          '[Pitch deck: ' + images.length + ' slides uploaded as images]');
       }
     } catch (err) {
       zone.innerHTML = origHTML;
@@ -1393,9 +1408,11 @@ async function processFile(file) {
     const wordCount = text.trim().split(/\s+/).length;
     const isDoc = /\.(pdf|docx|doc)$/i.test(file.name);
     const label = isDoc
-      ? '\ud83d\udcc4 ' + file.name + ' (' + wordCount + ' words) — analyzing…'
-      : '\u25b6 ' + file.name + ' transcribed (' + wordCount + ' words) — analyzing…';
-    sendPitchContent(label, 'Please give me a full pitch teardown. Here is the content:\n\n' + text.slice(0, 8000));
+      ? '\ud83d\udcc4 ' + file.name + ' (' + wordCount + ' words)'
+      : '\u25b6 ' + file.name + ' transcribed (' + wordCount + ' words)';
+    startDeckAnalysis(label,
+      [{ type: 'text', text: 'Here is my pitch content:\n\n' + text.slice(0, 8000) }],
+      null);
 
   } catch (err) {
     zone.innerHTML = origHTML;

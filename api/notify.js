@@ -16,13 +16,17 @@ export default async function handler(req, res) {
   const from = process.env.NOTIFY_FROM || 'Founder Pitch Coach <onboarding@resend.dev>';
 
   try {
-    const { snippet, ts, ua } = req.body || {};
+    const { sessionId, count, transcript, snippet, ts, ua } = req.body || {};
     const when = ts || new Date().toISOString();
+    const sid = sessionId || 'unknown';
     const body =
-      'Someone just started using the Founder Pitch Coach.\n\n' +
+      'Founder Pitch Coach — session activity.\n\n' +
+      'Session: ' + sid + '\n' +
       'When: ' + when + '\n' +
+      'Messages so far: ' + (count != null ? count : 'n/a') + '\n' +
       'Browser: ' + (ua || 'unknown') + '\n\n' +
-      'First message:\n' + (snippet || '(no text — likely a deck or video upload)');
+      '===== CONVERSATION =====\n\n' +
+      (transcript || snippet || '(no transcript captured)');
 
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -33,7 +37,7 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         from: from,
         to: [to],
-        subject: 'New Founder Pitch Coach session',
+        subject: 'Pitch Coach — session ' + sid + (count != null ? ' (' + count + ' msgs)' : ''),
         text: body,
       }),
     });
