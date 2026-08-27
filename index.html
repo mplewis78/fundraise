@@ -255,7 +255,8 @@ h2 em { font-style: italic; font-weight: 400; }
   background: var(--white);
   display: flex;
   flex-direction: column;
-  height: 600px;
+  height: min(82vh, 820px);
+  min-height: 560px;
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(15,31,46,0.1);
 }
@@ -333,6 +334,7 @@ h2 em { font-style: italic; font-weight: 400; }
   background: var(--off-white);
   border-color: var(--border-lt);
   color: var(--navy);
+  max-width: 92%;
 }
 .msg.user .msg-bubble {
   background: var(--navy);
@@ -340,6 +342,49 @@ h2 em { font-style: italic; font-weight: 400; }
   border-color: var(--navy);
 }
 .msg-bubble strong { font-weight: 600; }
+
+/* Rendered markdown inside coach replies */
+.msg-bubble h3 {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em;
+  margin: 0.95rem 0 0.4rem; color: var(--navy);
+}
+.msg-bubble h4 {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem; font-weight: 600;
+  margin: 0.75rem 0 0.3rem; color: var(--navy);
+}
+.msg-bubble h3:first-child, .msg-bubble h4:first-child, .msg-bubble p:first-child { margin-top: 0; }
+.msg-bubble p { margin: 0 0 0.6rem; }
+.msg-bubble p:last-child { margin-bottom: 0; }
+.msg-bubble ul, .msg-bubble ol { margin: 0.3rem 0 0.7rem; padding-left: 1.2rem; }
+.msg-bubble li { margin: 0.22rem 0; }
+.msg-bubble blockquote {
+  margin: 0.5rem 0; padding: 0.45rem 0.8rem;
+  border-left: 2px solid var(--gold); background: rgba(0,0,0,0.02);
+  color: #4a5460; font-style: italic;
+}
+.msg-bubble hr { border: none; border-top: 1px solid var(--border-lt); margin: 0.85rem 0; }
+.msg-bubble code {
+  font-family: ui-monospace, Menlo, monospace; font-size: 0.78em;
+  background: rgba(0,0,0,0.05); padding: 0.05rem 0.3rem; border-radius: 3px;
+}
+.msg-bubble a { color: var(--navy); text-decoration: underline; }
+
+/* Copy button under coach replies */
+.msg-actions {
+  margin-top: 0.75rem; padding-top: 0.55rem;
+  border-top: 1px solid var(--border-lt);
+  display: flex; justify-content: flex-end;
+}
+.copy-btn {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.62rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--border-lt); border-radius: 2px;
+  padding: 0.28rem 0.7rem; cursor: pointer; transition: all 0.15s;
+}
+.copy-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--gold-lt); }
 
 .typing-indicator {
   display: flex; gap: 4px; align-items: center; padding: 0.4rem 0;
@@ -615,7 +660,7 @@ footer p {
   .coach-wrap, .download-wrap { padding: 3rem 1.5rem; }
   header { padding: 0 1.5rem; }
   nav a:not(.cta) { display: none; }
-  .chat-widget { height: 520px; }
+  .chat-widget { height: 74vh; min-height: 460px; }
 }
 </style>
 </head>
@@ -812,6 +857,22 @@ footer p {
 <script>
 let history = [];
 let SYSTEM = '';
+let notified = false;
+
+// Fire-and-forget: tell Mike someone started a session (once per visit)
+function notifyUsage(snippet) {
+  try {
+    fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        snippet: String(snippet || '').slice(0, 600),
+        ts: new Date().toISOString(),
+        ua: navigator.userAgent || ''
+      })
+    }).catch(() => {});
+  } catch (e) { /* never block the founder's experience */ }
+}
 
 // ── LOAD SKILL FROM FILE (single source of truth) ──
 async function loadSkill() {
@@ -901,17 +962,71 @@ function appendMsg(role, text) {
   const bubble = document.createElement('div');
   bubble.className = 'msg-bubble';
   bubble.innerHTML = formatMsg(text);
+  // Add a Copy button to substantive coach replies
+  if (role === 'coach' && text && text.length > 200) {
+    const actions = document.createElement('div');
+    actions.className = 'msg-actions';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'copy-btn';
+    btn.textContent = 'Copy';
+    btn.onclick = () => {
+      const done = () => { btn.textContent = 'Copied ✓'; setTimeout(() => { btn.textContent = 'Copy'; }, 1800); };
+      const fail = () => { btn.textContent = 'Copy failed'; setTimeout(() => { btn.textContent = 'Copy'; }, 1800); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(fail);
+      } else {
+        try {
+          const ta = document.createElement('textarea');
+          ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+          document.body.removeChild(ta); done();
+        } catch (e) { fail(); }
+      }
+    };
+    actions.appendChild(btn);
+    bubble.appendChild(actions);
+  }
   div.appendChild(avatar); div.appendChild(bubble);
   msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
+  // Fire a one-time usage notification on the founder's first message
+  if (role === 'user' && !notified) { notified = true; notifyUsage(text); }
   return div;
 }
 
+// Inline markdown (bold, code, links, check marks) — HTML-escaped first for safety
+function inlineMd(s) {
+  s = String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/`([^`]+?)`/g, '<code>$1</code>');
+  s = s.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/✓/g, '<span style="color:#2e7d5e;font-weight:600;">✓</span>');
+  s = s.replace(/✗/g, '<span style="color:#c0392b;font-weight:600;">✗</span>');
+  return s;
+}
+
+// Block-level markdown: headers, lists, blockquotes, rules, paragraphs
 function formatMsg(text) {
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/✓/g, '<span style="color:#2e7d5e;font-weight:600;">✓</span>')
-    .replace(/✗/g, '<span style="color:#c0392b;font-weight:600;">✗</span>')
-    .replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+  const lines = String(text).split('\n');
+  let html = '', listType = null, para = [];
+  const flushPara = () => { if (para.length) { html += '<p>' + para.map(inlineMd).join('<br>') + '</p>'; para = []; } };
+  const closeList = () => { if (listType) { html += '</' + listType + '>'; listType = null; } };
+  for (const ln of lines) {
+    const t = ln.trim();
+    if (t === '') { flushPara(); closeList(); continue; }
+    let m;
+    if (/^###\s+/.test(t))            { flushPara(); closeList(); html += '<h4>' + inlineMd(t.replace(/^###\s+/, '')) + '</h4>'; continue; }
+    if (/^##\s+/.test(t))             { flushPara(); closeList(); html += '<h3>' + inlineMd(t.replace(/^##\s+/, '')) + '</h3>'; continue; }
+    if (/^#\s+/.test(t))              { flushPara(); closeList(); html += '<h3>' + inlineMd(t.replace(/^#\s+/, '')) + '</h3>'; continue; }
+    if (/^(---+|___+|\*\*\*+)$/.test(t)) { flushPara(); closeList(); html += '<hr>'; continue; }
+    if (/^>\s?/.test(t))              { flushPara(); closeList(); html += '<blockquote>' + inlineMd(t.replace(/^>\s?/, '')) + '</blockquote>'; continue; }
+    if ((m = t.match(/^[-*]\s+(.*)$/)))  { flushPara(); if (listType !== 'ul') { closeList(); html += '<ul>'; listType = 'ul'; } html += '<li>' + inlineMd(m[1]) + '</li>'; continue; }
+    if ((m = t.match(/^\d+\.\s+(.*)$/))) { flushPara(); if (listType !== 'ol') { closeList(); html += '<ol>'; listType = 'ol'; } html += '<li>' + inlineMd(m[1]) + '</li>'; continue; }
+    closeList();
+    para.push(t);
+  }
+  flushPara(); closeList();
+  return html;
 }
 
 function appendTyping() {
