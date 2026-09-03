@@ -3,985 +3,468 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Founder Pitch Coach — Enjoy The Work</title>
+<title>Enjoy the Fundraise — Founder Pitch Coach</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
 <style>
 :root {
-  --navy:    #0f1f2e;
-  --navy-mid:#162840;
-  --navy-lt: #1e3a54;
-  --white:   #ffffff;
-  --off-white: #f5f5f0;
-  --cream:   #ede9e0;
-  --gold:    #c8a84b;
-  --gold-lt: #f5edda;
-  --gold-dk: #9e7e2c;
-  --muted:   #7a8a99;
-  --border:  #2c4057;
-  --border-lt: #d4cfc5;
+  --ink:      #131f28;
+  --ink-soft: #8e9299;   /* muted text on ink */
+  --gold:     #c2a04b;   /* bright gold — chrome / fills only, fails contrast at body size */
+  --gold-dk:  #8a6d1f;   /* deep gold — gold text on paper */
+  --paper:    #f4f1ea;
+  --surface:  #eae6dc;   /* warm surface */
+  --body:     #3d3a33;
+  --muted:    #5c584f;
+  --hair:     rgba(19,31,40,0.14);
+  --hair-2:   rgba(19,31,40,0.28);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
 
+html, body { height: 100%; }
 body {
-  background: var(--off-white);
-  color: var(--navy);
-  font-family: 'Inter', sans-serif;
-  font-weight: 300;
-  line-height: 1.65;
-  overflow-x: hidden;
-}
-
-/* ── NAV ── */
-header {
-  position: sticky; top: 0; z-index: 100;
-  background: var(--navy);
-  padding: 0 2.5rem;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 60px;
-  border-bottom: 1px solid var(--border);
-}
-
-.logo-wrap {
-  display: flex; flex-direction: column; line-height: 1;
-}
-.logo-top {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.6rem;
+  background: var(--paper);
+  color: var(--body);
+  font-family: "Source Serif 4", Georgia, serif;
   font-weight: 400;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
 }
-.logo-main {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--white);
-  letter-spacing: 0.01em;
-}
-.logo-main em { font-style: italic; font-weight: 400; color: var(--gold); }
+a { color: var(--gold-dk); text-decoration: none; }
+a:hover { color: var(--gold); }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
-nav { display: flex; gap: 2rem; align-items: center; }
-nav a {
-  text-decoration: none;
-  color: rgba(255,255,255,0.5);
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-  transition: color 0.2s;
-}
-nav a:hover { color: var(--white); }
-nav a.cta {
-  background: var(--gold);
-  color: var(--navy);
-  padding: 0.4rem 1.1rem;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-nav a.cta:hover { background: #d9b95c; }
-
-/* ── HERO ── */
-.hero {
-  max-width: 820px;
-  margin: 0 auto;
-  padding: 6rem 2.5rem 5.5rem;
+.label {
+  font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--gold-dk); font-weight: 400;
 }
 
-.eyebrow {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold-dk);
-  display: flex; align-items: center; gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-.eyebrow::before {
-  content: '';
-  display: block; width: 28px; height: 1px;
-  background: var(--gold);
-}
-
-h1 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(2.6rem, 4.5vw, 3.8rem);
-  font-weight: 600;
-  line-height: 1.1;
-  margin-bottom: 1.5rem;
-  letter-spacing: -0.01em;
-  color: var(--navy);
-}
-h1 em { font-style: italic; font-weight: 400; color: var(--gold-dk); }
-
-.hero-sub {
-  font-size: 1rem;
-  color: var(--muted);
-  max-width: 50ch;
-  line-height: 1.85;
-  margin-bottom: 2.5rem;
-  font-weight: 300;
-}
-
-.ctas { display: flex; gap: 0.85rem; flex-wrap: wrap; }
-
-.btn {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0.85rem 1.75rem;
-  border: 1.5px solid var(--navy);
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  transition: all 0.18s;
-}
-.btn-fill { background: var(--navy); color: var(--white); }
-.btn-fill:hover { background: var(--navy-lt); border-color: var(--navy-lt); }
-.btn-outline { background: transparent; color: var(--navy); border-color: var(--navy); }
-.btn-outline:hover { background: var(--navy); color: var(--white); }
-
-/* ── STRIPE ── */
-.stripe {
-  background: var(--navy);
-  padding: 1.1rem 2.5rem;
+/* ── APP SHELL ── */
+.app {
+  height: 100vh; height: 100dvh;
+  display: flex; flex-direction: column;
   overflow: hidden;
-}
-.stripe-text {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.68rem;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.18);
-  white-space: nowrap;
-  animation: marquee 22s linear infinite;
-}
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  max-width: 1180px; margin: 0 auto;
+  border-left: 1px solid var(--hair); border-right: 1px solid var(--hair);
+  background: var(--paper);
 }
 
-/* ── COACH SECTION ── */
-#coach {
-  background: var(--cream);
-  border-top: 1px solid var(--border-lt);
-  border-bottom: 1px solid var(--border-lt);
-}
-
-.coach-wrap {
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 5.5rem 2.5rem;
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 5rem;
-  align-items: start;
-}
-
-.section-label {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 0.85rem;
-}
-
-h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.6rem, 2.4vw, 2.1rem);
-  font-weight: 600;
-  line-height: 1.2;
-  margin-bottom: 1rem;
-  color: var(--navy);
-}
-h2 em { font-style: italic; font-weight: 400; }
-
-.coach-intro p {
-  font-size: 0.875rem;
-  color: #555e6b;
-  line-height: 1.85;
-  margin-bottom: 1rem;
-}
-
-.mode-list {
-  margin-top: 1.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  border: 1px solid var(--border-lt);
-}
-.mode-item {
-  display: flex; gap: 0; align-items: stretch;
-  font-size: 0.82rem;
-  border-bottom: 1px solid var(--border-lt);
-}
-.mode-item:last-child { border-bottom: none; }
-.mode-tag {
-  background: var(--navy);
-  color: var(--gold);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.58rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 0.75rem 0.85rem;
-  min-width: 72px;
-  display: flex; align-items: center; justify-content: center;
+/* ── MASTHEAD ── */
+.masthead {
   flex-shrink: 0;
-}
-.mode-item span {
-  color: #555e6b;
-  line-height: 1.5;
-  padding: 0.75rem 1rem;
-  display: flex; align-items: center;
-  font-size: 0.8rem;
-}
-
-/* ── CHAT WIDGET ── */
-.chat-widget {
-  border: 1px solid var(--border-lt);
-  background: var(--white);
-  display: flex;
-  flex-direction: column;
-  height: min(82vh, 820px);
-  min-height: 560px;
-  overflow: hidden;
-  box-shadow: 0 4px 24px rgba(15,31,46,0.1);
-}
-
-.chat-topbar {
-  background: var(--navy);
-  padding: 0.9rem 1.25rem;
+  background: var(--ink);
   display: flex; align-items: center; justify-content: space-between;
-  flex-shrink: 0;
+  padding: 15px 30px;
 }
-.chat-topbar-left { display: flex; align-items: center; gap: 0.65rem; }
-.chat-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
-.chat-topbar-name {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.75);
+.brand { font-size: 1.15rem; font-weight: 600; color: var(--paper); letter-spacing: 0.005em; }
+.brand em { font-style: italic; font-weight: 400; color: var(--gold); }
+.masthead-right {
+  font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-soft); display: flex; align-items: center; gap: 20px;
 }
-.chat-status {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.62rem;
-  color: rgba(255,255,255,0.3);
-  letter-spacing: 0.06em;
+.masthead-right .skill-link {
+  color: var(--ink-soft); background: transparent; border: 1px solid rgba(255,255,255,0.2);
+  font-family: inherit; font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 7px 13px; cursor: pointer; transition: all 0.15s;
 }
-.chat-topbar-right { display: flex; align-items: center; gap: 0.8rem; }
-.newpitch-btn {
-  font-family: 'Inter', sans-serif; font-size: 0.6rem; font-weight: 500;
-  letter-spacing: 0.08em; text-transform: uppercase;
-  color: rgba(255,255,255,0.75); background: transparent;
-  border: 1px solid rgba(255,255,255,0.25); border-radius: 2px;
-  padding: 0.28rem 0.6rem; cursor: pointer; transition: all 0.15s; white-space: nowrap;
-}
-.newpitch-btn:hover { border-color: var(--gold); color: var(--gold); }
+.masthead-right .skill-link:hover { border-color: var(--gold); color: var(--gold); }
 
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  scroll-behavior: smooth;
-}
-.chat-messages::-webkit-scrollbar { width: 3px; }
-.chat-messages::-webkit-scrollbar-track { background: transparent; }
-.chat-messages::-webkit-scrollbar-thumb { background: var(--border-lt); }
+/* ── WORKING AREA ── */
+.work { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.work::-webkit-scrollbar { width: 4px; }
+.work::-webkit-scrollbar-thumb { background: var(--hair); }
+.state { display: none; flex: 1; flex-direction: column; }
+.state.active { display: flex; }
 
-.msg {
-  display: flex;
-  gap: 0.65rem;
-  align-items: flex-start;
-  animation: msgIn 0.2s ease;
+/* ── STATE 1 · ARRIVAL ── */
+#state-arrival { justify-content: center; gap: 34px; padding: 40px 30px; }
+.arrival-hero { display: flex; flex-direction: column; gap: 20px; }
+.arrival-hero h1 {
+  font-size: clamp(2.4rem, 5vw, 3.6rem); line-height: 0.98; letter-spacing: -0.025em;
+  font-weight: 600; color: var(--ink); text-wrap: pretty; max-width: 16ch;
 }
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+.arrival-hero h1 em { font-style: italic; font-weight: 400; color: var(--gold-dk); }
+.arrival-hero p { max-width: 44ch; font-size: 1.12rem; line-height: 1.6; color: var(--body); }
+.comes-back { display: flex; flex-direction: column; gap: 13px; }
+.comes-back-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 30px; max-width: 640px; }
+.comes-back-grid span {
+  font-size: 1rem; line-height: 1.4; color: var(--body);
+  border-bottom: 1px solid var(--hair); padding-bottom: 9px;
 }
+.comes-back-grid span.no-rule { border-bottom: none; }
 
-.msg-avatar {
-  width: 28px; height: 28px;
-  border-radius: 2px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.58rem;
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-  flex-shrink: 0;
-  margin-top: 2px;
-  letter-spacing: 0.04em;
+/* ── STATE 2 · CALIBRATION ── */
+#state-calibration { gap: 26px; padding: 30px; overflow: hidden; }
+.pitch-preview { display: flex; flex-direction: column; gap: 8px; }
+.pitch-preview p {
+  background: var(--ink); color: #c9c4b8; font-size: 0.95rem; line-height: 1.6;
+  padding: 14px 16px; max-height: 96px; overflow: hidden;
 }
-.msg.coach .msg-avatar { background: var(--navy); color: var(--gold); }
-.msg.user .msg-avatar { background: var(--gold); color: var(--navy); }
-.msg.user { flex-direction: row-reverse; }
+.calib-q { display: flex; flex-direction: column; gap: 14px; border-top: 2px solid var(--ink); padding-top: 22px; }
+.calib-q h2 { font-size: 1.55rem; line-height: 1.25; font-weight: 600; color: var(--ink); max-width: 34ch; }
+.calib-q p { font-size: 1.05rem; line-height: 1.6; color: var(--muted); max-width: 54ch; }
+.calib-group { display: flex; flex-direction: column; gap: 11px; }
+.opt-row { display: flex; flex-wrap: wrap; gap: 9px; }
+.opt {
+  font-family: inherit; font-size: 1rem; color: var(--body);
+  border: 1px solid var(--hair-2); background: transparent;
+  padding: 12px 16px; cursor: pointer; transition: all 0.12s; text-align: center;
+}
+.opt.grow { flex: 1; min-width: 90px; }
+.opt:hover { border-color: var(--ink); }
+.opt.selected { background: var(--ink); color: var(--paper); border-color: var(--ink); }
 
-.msg-bubble {
-  max-width: 80%;
-  padding: 0.8rem 1rem;
-  font-size: 0.84rem;
-  line-height: 1.65;
-  border: 1px solid var(--border-lt);
+/* ── STATE 3 · REPORT ── */
+#state-report { padding: 0; }
+.calibrated-bar {
+  flex-shrink: 0; display: flex; align-items: center; gap: 22px;
+  padding: 12px 30px; background: var(--surface); border-bottom: 1px solid var(--hair-2);
 }
-.msg.coach .msg-bubble {
-  background: var(--off-white);
-  border-color: var(--border-lt);
-  color: var(--navy);
-  max-width: 92%;
+.calibrated-bar .cb-val { font-size: 0.98rem; color: var(--ink); }
+.report-body {
+  padding: 28px 30px 36px; display: flex; flex-direction: column; gap: 4px;
 }
-.msg.user .msg-bubble {
-  background: var(--navy);
-  color: var(--white);
-  border-color: var(--navy);
-}
-.msg-bubble strong { font-weight: 600; }
-
-/* Rendered markdown inside coach replies */
-.msg-bubble h3 {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.82rem; font-weight: 700; letter-spacing: 0.02em;
-  margin: 0.95rem 0 0.4rem; color: var(--navy);
-}
-.msg-bubble h4 {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.8rem; font-weight: 600;
-  margin: 0.75rem 0 0.3rem; color: var(--navy);
-}
-.msg-bubble h3:first-child, .msg-bubble h4:first-child, .msg-bubble p:first-child { margin-top: 0; }
-.msg-bubble p { margin: 0 0 0.6rem; }
-.msg-bubble p:last-child { margin-bottom: 0; }
-.msg-bubble ul, .msg-bubble ol { margin: 0.3rem 0 0.7rem; padding-left: 1.2rem; }
-.msg-bubble li { margin: 0.22rem 0; }
-.msg-bubble blockquote {
-  margin: 0.5rem 0; padding: 0.45rem 0.8rem;
-  border-left: 2px solid var(--gold); background: rgba(0,0,0,0.02);
-  color: #4a5460; font-style: italic;
-}
-.msg-bubble hr { border: none; border-top: 1px solid var(--border-lt); margin: 0.85rem 0; }
-.msg-bubble code {
-  font-family: ui-monospace, Menlo, monospace; font-size: 0.78em;
-  background: rgba(0,0,0,0.05); padding: 0.05rem 0.3rem; border-radius: 3px;
-}
-.msg-bubble a { color: var(--navy); text-decoration: underline; }
-
-/* Copy button under coach replies */
-.msg-actions {
-  margin-top: 0.75rem; padding-top: 0.55rem;
-  border-top: 1px solid var(--border-lt);
-  display: flex; justify-content: flex-end;
-}
+.report-body .report-inner { max-width: 64ch; }
+.report-body h1 { font-size: 1.7rem; line-height: 1.2; font-weight: 600; color: var(--ink); margin: 1.1rem 0 0.5rem; letter-spacing: -0.01em; }
+.report-body h2 { font-size: 1.35rem; line-height: 1.25; font-weight: 600; color: var(--ink); margin: 1.4rem 0 0.5rem; padding-top: 1.1rem; border-top: 2px solid var(--ink); }
+.report-body h3 { font-size: 1.12rem; font-weight: 600; color: var(--ink); margin: 1.1rem 0 0.4rem; }
+.report-body h4 { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold-dk); font-weight: 400; margin: 1rem 0 0.35rem; }
+.report-body h1:first-child, .report-body h2:first-child, .report-body h3:first-child, .report-body p:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+.report-body p { font-size: 1.02rem; line-height: 1.7; color: var(--body); margin: 0 0 0.75rem; }
+.report-body ul, .report-body ol { margin: 0.3rem 0 0.9rem; padding-left: 1.3rem; }
+.report-body li { font-size: 1.02rem; line-height: 1.6; color: var(--body); margin: 0.3rem 0; }
+.report-body blockquote { margin: 0.8rem 0; padding: 0.6rem 1rem; border-left: 2px solid var(--gold); background: rgba(19,31,40,0.03); color: var(--muted); font-style: italic; }
+.report-body hr { border: none; border-top: 1px solid var(--hair); margin: 1rem 0; }
+.report-body code { font-family: ui-monospace, Menlo, monospace; font-size: 0.85em; background: rgba(19,31,40,0.06); padding: 0.05rem 0.3rem; }
+.report-body strong { font-weight: 600; color: var(--ink); }
+.report-body a { color: var(--gold-dk); text-decoration: underline; }
+.report-actions { max-width: 64ch; margin-top: 1.4rem; padding-top: 0.8rem; border-top: 1px solid var(--hair); display: flex; justify-content: flex-end; }
 .copy-btn {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.62rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
-  color: var(--muted); background: transparent;
-  border: 1px solid var(--border-lt); border-radius: 2px;
-  padding: 0.28rem 0.7rem; cursor: pointer; transition: all 0.15s;
+  font-family: inherit; font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted); background: transparent; border: 1px solid var(--hair-2);
+  padding: 7px 14px; cursor: pointer; transition: all 0.15s;
 }
-.copy-btn:hover { border-color: var(--navy); color: var(--navy); background: var(--gold-lt); }
+.copy-btn:hover { border-color: var(--ink); color: var(--ink); }
 
-.typing-indicator {
-  display: flex; gap: 4px; align-items: center; padding: 0.4rem 0;
-}
-.typing-indicator span {
-  width: 5px; height: 5px;
-  background: var(--border-lt);
-  border-radius: 50%;
-  animation: bounce 1.1s infinite ease;
-}
-.typing-indicator span:nth-child(2) { animation-delay: 0.18s; }
-.typing-indicator span:nth-child(3) { animation-delay: 0.36s; }
-@keyframes bounce {
-  0%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-5px); }
-}
+/* follow-up turns in the report scroll */
+.followup { max-width: 64ch; margin-top: 1.2rem; }
+.followup.q { border-left: 2px solid var(--ink); padding: 4px 0 4px 14px; color: var(--ink); font-size: 1.02rem; }
+.followup.q .followup-tag { display: block; font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 3px; }
 
-.starter-chips {
-  padding: 0.75rem 1.25rem;
-  display: flex; flex-wrap: wrap; gap: 0.4rem;
-  border-top: 1px solid var(--border-lt);
-  flex-shrink: 0;
-  background: var(--off-white);
-}
+.typing { display: flex; gap: 5px; align-items: center; padding: 10px 0; }
+.typing span { width: 6px; height: 6px; border-radius: 50%; background: var(--hair-2); animation: bounce 1.1s infinite ease; }
+.typing span:nth-child(2){ animation-delay: 0.18s; } .typing span:nth-child(3){ animation-delay: 0.36s; }
+@keyframes bounce { 0%,80%,100%{ transform: translateY(0);} 40%{ transform: translateY(-5px);} }
+
+/* ── COMPOSER (docked) ── */
+.composer { flex-shrink: 0; border-top: 2px solid var(--ink); background: var(--paper); }
+.composer-block { display: none; }
+.composer-block.active { display: block; }
+
+/* arrival composer */
+.chips { display: flex; flex-wrap: wrap; gap: 9px; padding: 16px 30px 0; }
 .chip {
-  font-size: 0.7rem;
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-  padding: 0.3rem 0.75rem;
-  border: 1px solid var(--border-lt);
-  cursor: pointer;
-  color: #555e6b;
-  background: var(--white);
-  transition: all 0.15s;
-  white-space: nowrap;
+  font-family: inherit; font-size: 0.9rem; color: var(--body);
+  border: 1px solid var(--hair-2); background: transparent;
+  padding: 8px 13px; cursor: pointer; transition: all 0.13s;
 }
-.chip:hover { border-color: var(--navy); color: var(--navy); background: var(--gold-lt); }
+.chip:hover { border-color: var(--ink); color: var(--ink); }
+.tabs { display: flex; gap: 22px; padding: 14px 30px 0; }
+.tab {
+  font-family: inherit; font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #8b877d; background: transparent; border: none; cursor: pointer; padding: 4px 0;
+  border-bottom: 2px solid transparent; transition: all 0.15s;
+}
+.tab.active { color: var(--ink); border-bottom-color: var(--gold); }
+.input-row { display: flex; align-items: stretch; padding: 12px 30px 22px; gap: 0; }
+.input-row textarea, .input-row input[type=url] {
+  flex: 1; border: 1px solid var(--hair-2); border-right: none; outline: none;
+  padding: 15px 18px; font-family: inherit; font-size: 1rem; line-height: 1.5;
+  background: #fff; color: var(--ink); resize: none; max-height: 150px;
+}
+.input-row textarea::placeholder, .input-row input::placeholder { color: #9a968c; }
+.send {
+  border: none; background: var(--gold); color: var(--ink);
+  padding: 0 24px; cursor: pointer; font-size: 1.1rem; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; transition: background 0.15s;
+}
+.send:hover { background: var(--ink); color: var(--gold); }
+.send:disabled { opacity: 0.4; cursor: not-allowed; }
+.send.wide { font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; padding: 0 26px; }
+.transcribe-status { display: none; padding: 10px 30px; font-size: 0.9rem; color: var(--gold-dk); background: var(--surface); }
+.file-drop {
+  margin: 12px 30px 22px; padding: 26px; text-align: center; cursor: pointer;
+  font-size: 0.92rem; color: var(--muted); background: #fff; border: 1px dashed var(--hair-2);
+  transition: all 0.15s; line-height: 1.8;
+}
+.file-drop:hover, .file-drop.dragover { background: var(--surface); color: var(--ink); border-color: var(--gold); }
+.file-drop small { display: block; font-size: 0.72rem; opacity: 0.7; margin-top: 4px; }
 
-/* ── INPUT TABS ── */
-.input-tabs {
-  display: flex;
-  border-top: 1px solid var(--border-lt);
-  flex-shrink: 0;
-}
-.input-tab {
-  flex: 1;
-  background: var(--off-white);
-  border: none;
-  border-right: 1px solid var(--border-lt);
-  padding: 0.55rem 0.5rem;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.input-tab:last-child { border-right: none; }
-.input-tab:hover { background: var(--gold-lt); color: var(--navy); }
-.input-tab.active { background: var(--navy); color: var(--gold); }
+/* calibration composer */
+.run-bar { display: flex; align-items: center; gap: 18px; padding: 18px 30px 22px; }
+.run-summary { flex: 1; font-size: 0.98rem; line-height: 1.5; color: var(--muted); }
 
-.chat-input-row {
-  border-top: 1px solid var(--border-lt);
-  display: flex;
-  flex-shrink: 0;
+/* report composer */
+.followup-row { display: flex; align-items: stretch; padding: 16px 30px 20px; }
+.followup-row input {
+  flex: 1; border: 1px solid var(--hair-2); border-right: none; outline: none;
+  padding: 14px 18px; font-family: inherit; font-size: 1rem; background: #fff; color: var(--ink);
 }
-#chatInput {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 1rem 1.25rem;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.84rem;
-  font-weight: 300;
-  background: var(--white);
-  color: var(--navy);
-  resize: none;
-  max-height: 140px;
-  line-height: 1.5;
+.followup-row input::placeholder { color: #9a968c; }
+.report-newpitch {
+  font-family: inherit; font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink-soft); background: transparent; border: 1px solid rgba(255,255,255,0.2);
+  padding: 7px 13px; cursor: pointer; transition: all 0.15s;
 }
-#chatInput::placeholder { color: #bbb; }
+.report-newpitch:hover { border-color: var(--gold); color: var(--gold); }
 
-#sendBtn {
-  background: var(--gold);
-  border: none;
-  border-left: 1px solid var(--border-lt);
-  width: 52px;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--navy);
-  font-size: 1rem;
-  transition: background 0.18s;
-  flex-shrink: 0;
+/* ── SKILL MODAL ── */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(19,31,40,0.55); z-index: 200;
+  display: none; align-items: center; justify-content: center; padding: 24px;
 }
-#sendBtn:hover { background: var(--navy); color: var(--gold); }
-#sendBtn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-/* VIDEO INPUT */
-.video-input-row { display: flex; flex-shrink: 0; }
-#videoUrlInput {
-  flex: 1; border: none; outline: none;
-  padding: 1rem 1.25rem;
-  font-family: 'Inter', sans-serif; font-size: 0.84rem;
-  background: var(--white); color: var(--navy);
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--paper); max-width: 460px; width: 100%; border: 1px solid var(--ink);
+  box-shadow: 0 20px 60px rgba(19,31,40,0.35);
 }
-#videoUrlInput::placeholder { color: #bbb; }
-#transcribeBtn {
-  background: var(--gold); border: none;
-  border-left: 1px solid var(--border-lt);
-  padding: 0 1.25rem; cursor: pointer;
-  font-family: 'Inter', sans-serif; font-size: 0.68rem;
-  font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--navy); white-space: nowrap;
-  transition: background 0.18s; flex-shrink: 0;
+.modal-top { background: var(--ink); padding: 22px 26px; display: flex; justify-content: space-between; align-items: flex-start; }
+.modal-top h3 { font-size: 1.4rem; font-weight: 600; color: var(--paper); line-height: 1.2; }
+.modal-top h3 em { font-style: italic; font-weight: 400; color: var(--gold); }
+.modal-close { background: transparent; border: none; color: var(--ink-soft); font-size: 1.3rem; cursor: pointer; line-height: 1; }
+.modal-close:hover { color: var(--gold); }
+.modal-body { padding: 22px 26px; }
+.modal-body p { font-size: 0.98rem; line-height: 1.6; color: var(--body); margin-bottom: 12px; }
+.modal-body ol { margin: 0 0 4px 1.1rem; }
+.modal-body li { font-size: 0.96rem; line-height: 1.55; color: var(--body); margin: 6px 0; }
+.modal-dl {
+  display: block; text-align: center; margin-top: 18px; padding: 14px;
+  background: var(--gold); color: var(--ink); font-size: 0.72rem; letter-spacing: 0.16em;
+  text-transform: uppercase; text-decoration: none; transition: all 0.15s;
 }
-#transcribeBtn:hover { background: var(--navy); color: var(--gold); }
-#transcribeBtn:disabled { opacity: 0.4; cursor: not-allowed; }
-.transcribe-status {
-  padding: 0.6rem 1.25rem;
-  font-family: 'Inter', sans-serif; font-size: 0.68rem;
-  color: var(--gold-dk); background: var(--gold-lt);
-  border-top: 1px solid #e0d5b0; display: none; flex-shrink: 0;
-}
-
-/* FILE DROP */
-.file-drop-zone {
-  padding: 1.75rem 1.25rem; text-align: center; cursor: pointer;
-  font-family: 'Inter', sans-serif; font-size: 0.68rem;
-  font-weight: 400; letter-spacing: 0.04em;
-  color: var(--muted); background: var(--white);
-  transition: all 0.15s; border-top: 1px dashed var(--border-lt);
-  line-height: 1.8;
-}
-.file-drop-zone:hover, .file-drop-zone.dragover {
-  background: var(--gold-lt); color: var(--navy); border-color: var(--gold);
-}
-
-/* ── DOWNLOAD SECTION ── */
-#download { border-top: 1px solid var(--border-lt); }
-
-.download-wrap {
-  max-width: 1160px;
-  margin: 0 auto;
-  padding: 5.5rem 2.5rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5rem;
-  align-items: start;
-}
-
-.skill-card {
-  border: 1px solid var(--border-lt);
-  overflow: hidden;
-  box-shadow: 0 4px 24px rgba(15,31,46,0.08);
-}
-.skill-card-top {
-  background: var(--navy);
-  padding: 1.75rem;
-}
-.skill-card-top h3 {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.4rem;
-  font-weight: 600;
-  color: var(--white);
-  margin-bottom: 0.3rem;
-  line-height: 1.2;
-}
-.skill-card-top h3 em { font-style: italic; font-weight: 400; color: var(--gold); }
-.skill-card-top p {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.66rem;
-  font-weight: 400;
-  color: rgba(255,255,255,0.35);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.skill-features { background: var(--white); padding: 0; }
-.feat {
-  display: flex; align-items: center; gap: 0.85rem;
-  padding: 0.85rem 1.25rem;
-  border-bottom: 1px solid var(--border-lt);
-  font-size: 0.82rem;
-  color: #3a4a5a;
-}
-.feat:last-child { border-bottom: none; }
-.feat-icon { color: var(--gold-dk); font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
-.skill-dl {
-  display: block; text-align: center; padding: 1rem;
-  background: var(--gold); color: var(--navy);
-  font-family: 'Inter', sans-serif; font-size: 0.72rem;
-  font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
-  text-decoration: none; border-top: 1px solid var(--border-lt);
-  transition: all 0.18s;
-}
-.skill-dl:hover { background: var(--navy); color: var(--gold); }
-
-.download-right h2 { margin-bottom: 1rem; }
-.download-right p {
-  font-size: 0.875rem; color: #555e6b;
-  line-height: 1.85; margin-bottom: 1rem;
-}
-
-blockquote {
-  border-left: 3px solid var(--gold);
-  padding: 1rem 1.25rem;
-  background: var(--gold-lt);
-  font-family: 'Playfair Display', serif;
-  font-style: italic;
-  font-size: 1rem;
-  line-height: 1.7;
-  margin: 1.5rem 0;
-  color: var(--navy);
-}
-
-.install-steps { display: flex; flex-direction: column; gap: 0.85rem; margin-top: 1.5rem; }
-.i-step { display: flex; gap: 0.85rem; align-items: flex-start; font-size: 0.83rem; }
-.i-num {
-  width: 24px; height: 24px;
-  background: var(--navy); color: var(--gold);
-  font-family: 'Inter', sans-serif; font-size: 0.65rem; font-weight: 600;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; margin-top: 0.1rem;
-}
-.i-step p { color: #555e6b; line-height: 1.65; padding-top: 0.15rem; }
-.i-step strong { color: var(--navy); font-weight: 600; }
-
-/* ── ETW ATTRIBUTION ── */
-.etw-bar {
-  background: var(--navy-mid);
-  border-top: 1px solid var(--border);
-  padding: 1rem 2.5rem;
-  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.4);
-  letter-spacing: 0.06em;
-}
-.etw-bar a {
-  color: var(--gold);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.15s;
-}
-.etw-bar a:hover { color: #d9b95c; }
-
-/* ── FOOTER ── */
-footer {
-  background: var(--navy);
-  padding: 1.75rem 2.5rem;
-  display: flex; align-items: center; justify-content: space-between;
-}
-.footer-logo { display: flex; flex-direction: column; line-height: 1.2; }
-.footer-logo-top {
-  font-family: 'Inter', sans-serif; font-size: 0.55rem; font-weight: 500;
-  letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
-}
-.footer-logo-name {
-  font-family: 'Playfair Display', serif; font-size: 0.95rem;
-  font-weight: 600; color: var(--white);
-}
-.footer-logo-name em { font-style: italic; font-weight: 400; color: var(--gold); }
-footer p {
-  font-family: 'Inter', sans-serif; font-size: 0.65rem;
-  color: rgba(255,255,255,0.3); letter-spacing: 0.06em;
-}
+.modal-dl:hover { background: var(--ink); color: var(--gold); }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 900px) {
-  .coach-wrap, .download-wrap { grid-template-columns: 1fr; gap: 2.5rem; }
-  .hero { padding: 3.5rem 1.5rem; }
-  .coach-wrap, .download-wrap { padding: 3rem 1.5rem; }
-  header { padding: 0 1.5rem; }
-  nav a:not(.cta) { display: none; }
-  .chat-widget { height: 74vh; min-height: 460px; }
+@media (max-width: 720px) {
+  .app { border: none; }
+  .masthead { padding: 13px 18px; }
+  .masthead-right .step-text { display: none; }
+  #state-arrival { padding: 28px 18px; gap: 26px; }
+  .comes-back-grid { grid-template-columns: 1fr; }
+  .comes-back-grid span { border-bottom: 1px solid var(--hair); }
+  #state-calibration { padding: 22px 18px; }
+  .calibrated-bar { padding: 12px 18px; gap: 14px; flex-wrap: wrap; }
+  .report-body { padding: 22px 18px 30px; }
+  .chips, .tabs, .input-row, .run-bar, .followup-row { padding-left: 18px; padding-right: 18px; }
+  .file-drop { margin-left: 18px; margin-right: 18px; }
 }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo-wrap">
-    <span class="logo-top">Enjoy The Work</span>
-    <span class="logo-main">Founder <em>Pitch</em> Coach</span>
-  </div>
-  <nav>
-    <a href="#coach">Try the Coach</a>
-    <a href="#download">Get the Skill</a>
-    <a href="#download" class="cta">↓ Download</a>
-  </nav>
-</header>
+<div class="app">
 
-<!-- HERO -->
-<section>
-  <div class="hero">
-    <div class="eyebrow">Fundraising Intelligence · Enjoy The Work</div>
-    <h1>Find the <em>killer problem</em><br>before investors do.</h1>
-    <p class="hero-sub">An AI-powered pitch coach built on battle-tested fundraising frameworks. Get a direct diagnosis of what's blocking your raise — then specific, investor-minded fixes to clear it.</p>
-    <div class="ctas">
-      <a href="#coach" class="btn btn-fill">Try the Coach ↓</a>
-      <a href="#download" class="btn btn-outline">Get the Skill File</a>
+  <!-- ── MASTHEAD ── -->
+  <header class="masthead">
+    <span class="brand">Enjoy the <em>Fundraise</em></span>
+    <div class="masthead-right">
+      <span class="step-text" id="mastheadStep">Fundraising intelligence · Enjoy The Work</span>
+      <button class="skill-link" type="button" id="newPitchBtn" style="display:none;" onclick="resetAll()">↺ New pitch</button>
+      <button class="skill-link" type="button" onclick="openSkillModal()">Get the skill</button>
     </div>
-  </div>
-</section>
+  </header>
 
-<!-- MARQUEE STRIPE -->
-<div class="stripe">
-  <div class="stripe-text">
-    KILLER PROBLEM DIAGNOSIS &nbsp;·&nbsp; INVESTOR-MINDED FEEDBACK &nbsp;·&nbsp; TAM CONSTRUCTION &nbsp;·&nbsp; COMPETITION ANALYSIS &nbsp;·&nbsp; 30-SECOND STORY &nbsp;·&nbsp; VC INTRO PLAYBOOK &nbsp;·&nbsp; PIPELINE BENCHMARKS &nbsp;·&nbsp; STAGE CALIBRATION &nbsp;·&nbsp; KILLER PROBLEM DIAGNOSIS &nbsp;·&nbsp; INVESTOR-MINDED FEEDBACK &nbsp;·&nbsp; TAM CONSTRUCTION &nbsp;·&nbsp; COMPETITION ANALYSIS &nbsp;·&nbsp; 30-SECOND STORY &nbsp;·&nbsp; VC INTRO PLAYBOOK &nbsp;·&nbsp; PIPELINE BENCHMARKS &nbsp;·&nbsp; STAGE CALIBRATION &nbsp;·&nbsp;
+  <!-- ── WORKING AREA ── -->
+  <div class="work" id="work">
+
+    <!-- STATE 1 · ARRIVAL -->
+    <section class="state active" id="state-arrival">
+      <div class="arrival-hero">
+        <span class="label">Fundraising intelligence · Enjoy The Work</span>
+        <h1>Find the <em>killer problem</em> before investors do.</h1>
+        <p>Paste your pitch narrative, deck story, or 30-second summary. You get a diagnosis first — then the principle behind it, then the fixes ranked.</p>
+      </div>
+      <div class="comes-back">
+        <span class="label">What comes back</span>
+        <div class="comes-back-grid">
+          <span>One-line diagnosis</span>
+          <span>Four Punch assessment</span>
+          <span>Investor-grade teardown</span>
+          <span>Likely investor objections</span>
+          <span class="no-rule">Bottom-up TAM rebuild</span>
+          <span class="no-rule">Fixes, ranked by priority</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATE 2 · CALIBRATION -->
+    <section class="state" id="state-calibration">
+      <div class="pitch-preview">
+        <span class="label" id="pitchPreviewLabel">Your pitch</span>
+        <p id="pitchPreviewText"></p>
+      </div>
+      <div class="calib-q">
+        <h2>Before I dig in — what stage is this raise, and who is the primary investor type you are targeting?</h2>
+        <p>That calibrates the whole teardown. A pre-seed pitch judged at Series A standards gets useless feedback, and a story sized for a $20M fund is the wrong story for a $2B one.</p>
+      </div>
+      <div class="calib-group">
+        <span class="label">Stage</span>
+        <div class="opt-row" data-group="stage">
+          <button class="opt grow" data-value="Pre-seed">Pre-seed</button>
+          <button class="opt grow selected" data-value="Seed">Seed</button>
+          <button class="opt grow" data-value="Series A">Series A</button>
+        </div>
+      </div>
+      <div class="calib-group">
+        <span class="label">Primary investor target</span>
+        <div class="opt-row" data-group="investor">
+          <button class="opt" data-value="Angels">Angels</button>
+          <button class="opt selected" data-value="Small seed funds">Small seed funds</button>
+          <button class="opt" data-value="Large multi-stage funds">Large multi-stage</button>
+          <button class="opt" data-value="PE">PE</button>
+        </div>
+      </div>
+      <div class="calib-group">
+        <span class="label">Depth of read</span>
+        <div class="opt-row" data-group="depth">
+          <button class="opt grow" data-value="Fast critique">Fast critique</button>
+          <button class="opt grow selected" data-value="Full teardown">Full teardown</button>
+          <button class="opt grow" data-value="Strategy">Strategy</button>
+          <button class="opt grow" data-value="Rewrite">Rewrite</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATE 3 · REPORT -->
+    <section class="state" id="state-report">
+      <div class="calibrated-bar">
+        <span class="label">Calibrated to</span>
+        <span class="cb-val" id="cbStage">Seed</span>
+        <span class="cb-val" id="cbInvestor">Small seed funds</span>
+      </div>
+      <div class="report-body" id="reportBody"></div>
+    </section>
+
+  </div>
+
+  <!-- ── COMPOSER ── -->
+  <div class="composer">
+
+    <!-- arrival composer -->
+    <div class="composer-block active" id="composer-arrival">
+      <div class="chips" id="starterChips">
+        <button class="chip" onclick="useChip(this)">Review my pitch narrative</button>
+        <button class="chip" onclick="useChip(this)">Help me build my TAM slide</button>
+        <button class="chip" onclick="useChip(this)">Rewrite my 30-second story</button>
+        <button class="chip" onclick="useChip(this)">Diagnose my pipeline</button>
+      </div>
+      <div class="tabs">
+        <button class="tab active" id="tab-text" onclick="switchTab('text')">✎ Text</button>
+        <button class="tab" id="tab-video" onclick="switchTab('video')">▶ Video URL</button>
+        <button class="tab" id="tab-file" onclick="switchTab('file')">⇧ Upload</button>
+      </div>
+      <div id="mode-text">
+        <div class="input-row">
+          <textarea id="chatInput" rows="1" placeholder="Paste your pitch or describe your startup…" onkeydown="handleArrivalKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send" id="sendBtn" onclick="submitPitch()">➤</button>
+        </div>
+      </div>
+      <div id="mode-video" style="display:none;">
+        <div class="input-row">
+          <input type="url" id="videoUrlInput" placeholder="Paste a Loom, YouTube, Fireflies, or MP4 URL…" onkeydown="if(event.key==='Enter')transcribeVideo()" />
+          <button class="send wide" id="transcribeBtn" onclick="transcribeVideo()">Transcribe</button>
+        </div>
+        <div class="transcribe-status" id="transcribeStatus">Transcribing… this may take a minute.</div>
+      </div>
+      <div id="mode-file" style="display:none;">
+        <div class="file-drop" id="fileDropZone"
+             onclick="document.getElementById('fileInput').click()"
+             ondragover="event.preventDefault();this.classList.add('dragover')"
+             ondragleave="this.classList.remove('dragover')"
+             ondrop="handleFileDrop(event)">
+          Drop a PDF, Word doc, or PowerPoint here
+          <small>or click to browse — .pdf, .docx, .pptx supported</small>
+          <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.pptx" style="display:none" onchange="handleFileUpload(event)" />
+        </div>
+      </div>
+    </div>
+
+    <!-- calibration composer -->
+    <div class="composer-block" id="composer-calibration">
+      <div class="run-bar">
+        <span class="run-summary" id="runSummary">Seed · small seed funds · full teardown. Roughly 1,200 words back.</span>
+        <button class="send wide" id="runBtn" onclick="runTeardownFromCalibration()">Run the teardown</button>
+      </div>
+    </div>
+
+    <!-- report composer -->
+    <div class="composer-block" id="composer-report">
+      <div class="followup-row">
+        <input type="text" id="followupInput" placeholder="Ask a follow-up…" onkeydown="if(event.key==='Enter')sendFollowup()" />
+        <button class="send" id="followupBtn" onclick="sendFollowup()">➤</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
-<!-- CHAT COACH -->
-<section id="coach">
-  <div class="coach-wrap">
-    <div class="coach-intro">
-      <div class="section-label">Step 01 — AI Pitch Coach</div>
-      <h2>Get instant, investor-grade feedback</h2>
-      <p>Share your pitch narrative, deck story, 30-second summary, or fundraising challenge. The coach leads with a direct diagnosis of your biggest investor-blocking problem — then teaches the principle behind the fix.</p>
-      <p>No encouragement. No buzzwords. Just diagnosis, principles, and prioritized improvements.</p>
-
-      <div class="mode-list">
-        <div class="mode-item">
-          <span class="mode-tag">Quick</span>
-          <span>The killer problem, why investors will say no, and the top fix</span>
-        </div>
-        <div class="mode-item">
-          <span class="mode-tag">Full</span>
-          <span>Slide-by-slide teardown, TAM critique, competition reframe</span>
-        </div>
-        <div class="mode-item">
-          <span class="mode-tag">Strategy</span>
-          <span>Investor targeting, pipeline health, intro email guidance</span>
-        </div>
-        <div class="mode-item">
-          <span class="mode-tag">Rewrite</span>
-          <span>Four Punch narrative, 30-second story, or deck sequencing</span>
-        </div>
-      </div>
+<!-- ── SKILL MODAL ── -->
+<div class="modal-backdrop" id="skillModal" onclick="if(event.target===this)closeSkillModal()">
+  <div class="modal">
+    <div class="modal-top">
+      <h3>Founder Pitch<br><em>Feedback Skill</em></h3>
+      <button class="modal-close" type="button" onclick="closeSkillModal()">✕</button>
     </div>
-
-    <div>
-      <div class="chat-widget" id="chatWidget">
-        <div class="chat-topbar">
-          <div class="chat-topbar-left">
-            <div class="chat-dot"></div>
-            <span class="chat-topbar-name">Founder Pitch Coach</span>
-          </div>
-          <div class="chat-topbar-right">
-            <button class="newpitch-btn" type="button" onclick="resetConversation(true)" title="Clear this conversation and start a new pitch">↺ New pitch</button>
-            <span class="chat-status" id="chatStatusText">Powered by Claude</span>
-          </div>
-        </div>
-
-        <div class="chat-messages" id="chatMessages">
-          <div class="msg coach">
-            <div class="msg-avatar">ETW</div>
-            <div class="msg-bubble">
-              <strong>Ready to diagnose your pitch.</strong><br><br>
-              Share your deck narrative, 30-second story, or just describe your startup. I'll identify the single biggest problem blocking investors, explain why it matters, and give you prioritized fixes.<br><br>
-              Or use one of the prompts below to start.
-            </div>
-          </div>
-        </div>
-
-        <div class="starter-chips" id="starterChips">
-          <div class="chip" onclick="useChip(this)">Review my pitch narrative</div>
-          <div class="chip" onclick="useChip(this)">Help me build my TAM slide</div>
-          <div class="chip" onclick="useChip(this)">Rewrite my 30-second story</div>
-          <div class="chip" onclick="useChip(this)">Diagnose my fundraise pipeline</div>
-        </div>
-
-        <div class="input-tabs" id="inputTabs">
-          <button class="input-tab active" onclick="switchTab('text')" id="tab-text">&#9998; Text</button>
-          <button class="input-tab" onclick="switchTab('video')" id="tab-video">&#9654; Video URL</button>
-          <button class="input-tab" onclick="switchTab('file')" id="tab-file">&#8679; Upload File</button>
-        </div>
-
-        <div id="mode-video" style="display:none; flex-direction:column; flex-shrink:0;">
-          <div class="video-input-row">
-            <input type="url" id="videoUrlInput" placeholder="Paste a Loom, YouTube, or MP4 URL…" onkeydown="if(event.key==='Enter')transcribeVideo()" />
-            <button id="transcribeBtn" onclick="transcribeVideo()">Transcribe &#10148;</button>
-          </div>
-          <div class="transcribe-status" id="transcribeStatus">Transcribing… this may take a minute.</div>
-        </div>
-
-        <div id="mode-file" style="display:none; flex-shrink:0;">
-          <div class="file-drop-zone" id="fileDropZone"
-               onclick="document.getElementById('fileInput').click()"
-               ondragover="event.preventDefault();this.classList.add('dragover')"
-               ondragleave="this.classList.remove('dragover')"
-               ondrop="handleFileDrop(event)">
-            Drop a PDF, Word doc, or PowerPoint here<br>
-            <span style="opacity:0.6;font-size:0.6rem;">or click to browse — .pdf, .docx, .pptx supported</span>
-            <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.pptx" style="display:none" onchange="handleFileUpload(event)" />
-          </div>
-        </div>
-
-        <div class="chat-input-row" id="chatInputRow">
-          <textarea id="chatInput" placeholder="Paste your pitch or describe your startup…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-          <button id="sendBtn" onclick="sendMessage()">➤</button>
-        </div>
-      </div>
+    <div class="modal-body">
+      <p>The same framework that powers this coach, as a Claude Skill file you can add to your own Claude Project — so every conversation runs the full teardown automatically.</p>
+      <ol>
+        <li>Download the skill file below.</li>
+        <li>Create a new Project in Claude.ai.</li>
+        <li>Upload the file to the Project's knowledge.</li>
+        <li>Start any conversation — the framework activates automatically.</li>
+      </ol>
+      <a href="founder-pitch-feedback-skill.md" download="founder-pitch-feedback-skill.md" class="modal-dl">⬇ Download the skill file — free</a>
     </div>
   </div>
-</section>
-
-<!-- DOWNLOAD -->
-<section id="download">
-  <div class="download-wrap">
-    <div>
-      <div class="skill-card">
-        <div class="skill-card-top">
-          <h3>Founder Pitch<br><em>Feedback Skill</em></h3>
-          <p>founder-pitch-feedback · Claude Project Skill</p>
-        </div>
-        <div class="skill-features">
-          <div class="feat"><span class="feat-icon">✦</span> Killer Problem diagnosis — leads every teardown</div>
-          <div class="feat"><span class="feat-icon">✦</span> Structural vs. content problem separation</div>
-          <div class="feat"><span class="feat-icon">✦</span> Four Punch Combo as diagnostic lens, not checklist</div>
-          <div class="feat"><span class="feat-icon">✦</span> Stage calibration: pre-seed · seed · Series A</div>
-          <div class="feat"><span class="feat-icon">✦</span> VC intro playbook + pipeline benchmarks</div>
-          <div class="feat"><span class="feat-icon">✦</span> TAM construction bottom-up logic guide</div>
-          <div class="feat"><span class="feat-icon">✦</span> Competition slide reframe methodology</div>
-          <div class="feat"><span class="feat-icon">✦</span> Fast critique, full teardown &amp; rewrite modes</div>
-        </div>
-        <a href="founder-pitch-feedback-skill.md" download="founder-pitch-feedback-skill.md" class="skill-dl">⬇ &nbsp; Download Skill File — Free</a>
-      </div>
-    </div>
-
-    <div class="download-right">
-      <div class="section-label">Step 02 — Claude Project Skill</div>
-      <h2>Use it every time,<br><em>automatically.</em></h2>
-      <p>A Claude Skill is a structured instruction file you add once to a Claude Project. After that, every conversation in the project runs the full coaching framework — automatically. No copy-pasting. No setup.</p>
-
-      <blockquote>"The logic of how you arrive at the number matters more than the number itself. Build it bottom-up. Then let multiplication get you to billions."</blockquote>
-
-      <div class="install-steps">
-        <div class="i-step">
-          <div class="i-num">1</div>
-          <p><strong>Download</strong> the .skill file above.</p>
-        </div>
-        <div class="i-step">
-          <div class="i-num">2</div>
-          <p><strong>Create a new Project</strong> in Claude.ai — name it "Fundraising Coach" or similar.</p>
-        </div>
-        <div class="i-step">
-          <div class="i-num">3</div>
-          <p><strong>Upload the skill file</strong> to the Project Knowledge section.</p>
-        </div>
-        <div class="i-step">
-          <div class="i-num">4</div>
-          <p><strong>Start any conversation</strong> in that project. The full framework activates automatically.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="etw-bar">
-  A tool from <a href="https://enjoythework.com" target="_blank">Enjoy The Work</a> &nbsp;·&nbsp; Where great founders become great CEOs.
 </div>
-
-<footer>
-  <div class="footer-logo">
-    <span class="footer-logo-top">Enjoy The Work</span>
-    <span class="footer-logo-name">Founder <em>Pitch</em> Coach</span>
-  </div>
-  <p>Built for founders who take fundraising seriously.</p>
-</footer>
 
 <script>
+/* ─────────────── STATE ─────────────── */
 let history = [];
 let SYSTEM = '';
 let sessionId = Math.random().toString(36).slice(2, 8);
-let pendingDeck = null;      // deck awaiting the founder's stage/investor answer
-let initialChatHTML = '';    // captured welcome state, for "New pitch" reset
+let pendingPitch = null;   // { content:[blocks], preview:'…', placeholder:'…' }
+let currentState = 'arrival';
 
-// Build a readable text transcript of the conversation for debugging emails
-function buildTranscript() {
-  return history.map(m => {
-    let text;
-    if (typeof m.content === 'string') {
-      text = m.content;
-    } else if (Array.isArray(m.content)) {
-      text = m.content.map(b => {
-        if (b.type === 'text') return b.text;
-        if (b.type === 'document') return '[PDF deck attached]';
-        if (b.type === 'image') return '[slide image attached]';
-        return '';
-      }).filter(Boolean).join('\n');
-    } else {
-      text = '';
-    }
-    return (m.role === 'assistant' ? 'COACH' : 'FOUNDER') + ':\n' + text;
-  }).join('\n\n----------\n\n');
+const DEPTH = {
+  'Fast critique': { tokens: 1600, instruction: 'Give me a fast critique: name the single killer problem, why investors will pass, and the one highest-priority fix. Keep it tight.' },
+  'Full teardown': { tokens: 4096, instruction: 'Now give me your full teardown of the pitch above — diagnosis first, then the section-by-section read, likely objections, and prioritized fixes.' },
+  'Strategy':      { tokens: 2600, instruction: 'Focus on fundraising strategy for this raise: investor targeting, pipeline health, and how to run outreach and intros. Diagnose the story only where it blocks the strategy.' },
+  'Rewrite':       { tokens: 3000, instruction: 'Rewrite my story: give me a Four Punch narrative and a tight 30-second version, with a short note on what changed and why.' }
+};
+
+/* ─────────────── STATE MACHINE ─────────────── */
+function setState(name) {
+  currentState = name;
+  document.querySelectorAll('.state').forEach(s => s.classList.toggle('active', s.id === 'state-' + name));
+  document.querySelectorAll('.composer-block').forEach(c => c.classList.toggle('active', c.id === 'composer-' + name));
+  const step = document.getElementById('mastheadStep');
+  if (name === 'arrival')     step.textContent = 'Fundraising intelligence · Enjoy The Work';
+  if (name === 'calibration') step.textContent = 'Step 1 of 2 · Calibrating';
+  if (name === 'report')      step.textContent = 'The teardown';
+  document.getElementById('newPitchBtn').style.display = name === 'report' ? '' : 'none';
+  document.getElementById('work').scrollTop = 0;
 }
 
-// Fire-and-forget: email Mike the running transcript (once per coach reply)
-function emailTranscript() {
-  try {
-    fetch('/api/notify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId,
-        count: history.length,
-        transcript: buildTranscript().slice(0, 100000),
-        ts: new Date().toISOString(),
-        ua: navigator.userAgent || ''
-      })
-    }).catch(() => {});
-  } catch (e) { /* never block the founder's experience */ }
-}
-
-// Clear the conversation. showWelcome=true restores the opening message + chips.
-function resetConversation(showWelcome) {
-  history = [];
-  pendingDeck = null;
-  const msgs = document.getElementById('chatMessages');
-  const chips = document.getElementById('starterChips');
-  const inp = document.getElementById('chatInput');
-  if (msgs) msgs.innerHTML = showWelcome ? initialChatHTML : '';
-  if (chips) chips.style.display = showWelcome ? '' : 'none';
-  if (inp) inp.placeholder = 'Paste your pitch or describe your startup…';
-  if (showWelcome) switchTab('text');
-}
-
-// Reset history + canvas and ask the calibration question before analyzing a deck
-function startDeckAnalysis(userLabel, deckContent, placeholder) {
-  resetConversation(false);
-  pendingDeck = { content: deckContent, placeholder: placeholder };
-  appendMsg('user', userLabel);
-  appendMsg('coach', "Before I dig in — what stage is this raise (pre-seed, seed, or Series A), and who are you primarily pitching (angels, seed funds, or larger multi-stage funds)? That calibrates the teardown.");
-  switchTab('text');
-  const inp = document.getElementById('chatInput');
-  if (inp) { inp.placeholder = 'Answer stage + investor type to get your teardown…'; inp.focus(); }
-}
-
-// Send the deck + calibration answer as one turn and render the teardown
-async function runTeardown(content, placeholder) {
-  document.getElementById('sendBtn').disabled = true;
-  history.push({ role: 'user', content });
-  const typingId = appendTyping();
-  try {
-    const res = await fetch('/api/chat', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4096, system: SYSTEM, messages: history })
-    });
-    if (res.status === 413) {
-      removeTyping(typingId);
-      appendMsg('coach', 'That deck is a little too large to read directly. Re-export it as a smaller PDF (under ~3MB) or paste your pitch text and I\'ll take it from there.');
-      history.pop();
-      document.getElementById('sendBtn').disabled = false;
-      document.getElementById('chatInput').focus();
-      return;
-    }
-    const data = await res.json();
-    removeTyping(typingId);
-    if (data.error) {
-      appendMsg('coach', '⚠️ ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
-      history.pop();
-    } else if (!data.content || !data.content[0] || !data.content[0].text) {
-      appendMsg('coach', 'I couldn\'t read that deck. Try re-saving it as a PDF, or paste your pitch text into the chat.');
-      history.pop();
-    } else {
-      const reply = data.content[0].text;
-      history.push({ role: 'assistant', content: reply });
-      appendMsg('coach', reply);
-      emailTranscript();
-      // Swap the deck for a short placeholder so follow-ups don't re-send the whole file
-      if (placeholder) history[history.length - 2] = { role: 'user', content: placeholder };
-    }
-  } catch (err) {
-    removeTyping(typingId);
-    appendMsg('coach', 'Network error while reading the deck. Please try again.');
-  }
-  document.getElementById('sendBtn').disabled = false;
-  document.getElementById('chatInput').focus();
-}
-
-// ── LOAD SKILL FROM FILE (single source of truth) ──
+/* ─────────────── SKILL LOAD ─────────────── */
 async function loadSkill() {
   try {
     const res = await fetch('/founder-pitch-feedback-skill.md');
     const text = await res.text();
-    // Strip YAML frontmatter (--- ... ---) if present
     SYSTEM = text.replace(/^---[\s\S]*?---\n/, '').trim();
   } catch (err) {
     console.error('Could not load skill file:', err);
@@ -990,129 +473,245 @@ async function loadSkill() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  const msgs = document.getElementById('chatMessages');
-  if (msgs) initialChatHTML = msgs.innerHTML; // snapshot the welcome state for "New pitch"
+  wireCalibration();
   await loadSkill();
-  document.getElementById('chatStatusText').textContent = 'Online · Claude Sonnet';
   document.getElementById('chatInput').focus();
 });
 
+/* ─────────────── ARRIVAL ─────────────── */
+function switchTab(mode) {
+  ['text','video','file'].forEach(m => document.getElementById('tab-'+m).classList.toggle('active', m === mode));
+  document.getElementById('mode-text').style.display  = mode === 'text'  ? '' : 'none';
+  document.getElementById('mode-video').style.display = mode === 'video' ? '' : 'none';
+  document.getElementById('mode-file').style.display  = mode === 'file'  ? '' : 'none';
+  if (mode === 'text')  document.getElementById('chatInput').focus();
+  if (mode === 'video') document.getElementById('videoUrlInput').focus();
+}
+
 function useChip(el) {
-  document.getElementById('chatInput').value = el.textContent;
-  document.getElementById('starterChips').style.display = 'none';
-  sendMessage();
+  const t = el.textContent;
+  const inp = document.getElementById('chatInput');
+  switchTab('text');
+  // Conversational prompts skip calibration and go straight to a coaching reply.
+  if (/tam slide|30-second|pipeline/i.test(t)) { inp.value = t; submitPitch(); }
+  else { inp.value = ''; inp.placeholder = 'Paste your pitch narrative or describe your startup…'; inp.focus(); }
 }
 
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
-}
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 150) + 'px'; }
+function handleArrivalKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitPitch(); } }
 
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-}
-
-async function sendMessage() {
+// Text pitch submitted from arrival → move to calibration.
+function submitPitch() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
   if (!text) return;
 
-  // If a deck is waiting on the founder's stage/investor answer, this message IS that
-  // answer — send the deck + calibration together and run the teardown.
-  if (pendingDeck) {
-    const pd = pendingDeck; pendingDeck = null;
-    input.value = ''; input.style.height = 'auto';
-    input.placeholder = 'Paste your pitch or describe your startup…';
-    document.getElementById('starterChips').style.display = 'none';
-    appendMsg('user', text);
-    const content = pd.content.concat([{ type: 'text', text:
-      'For calibration, here is the raise context: ' + text +
-      '\n\nNow give me your full, slide-by-slide teardown of the pitch above.' }]);
-    await runTeardown(content, pd.placeholder);
+  // A bare URL isn't pitch content — steer to the right tab.
+  if (/^https?:\/\/\S+$/.test(text)) {
+    input.value = '';
+    alert('That looks like a link. Use the ▶ Video URL tab to transcribe a video, or ⇧ Upload for a PDF or deck.');
+    switchTab(/loom|youtu|fireflies/i.test(text) ? 'video' : 'file');
     return;
   }
 
-  // Guard: if message looks like just a URL, redirect instead of hallucinating
-  if (/^https?:\/\/\S+$/.test(text)) {
-    input.value = '';
-    if (text.includes('fireflies.ai') || text.includes('loom.com') || text.includes('youtube.com') || text.includes('youtu.be')) {
-      appendMsg('coach', "That looks like a video or meeting link. Paste it into the <strong>▶ Video URL</strong> tab to transcribe it first, then I can give you a full teardown.");
-    } else {
-      appendMsg('coach', "That looks like a link rather than pitch content. If it's a video or Fireflies recording, use the <strong>▶ Video URL</strong> tab. If it's a PDF or doc, use the <strong>⇧ Upload File</strong> tab.");
-    }
-    return;
-  }
+  // Short conversational asks (no real pitch) go straight to a reply, no calibration.
+  const isConversational = text.length < 60 && /\?$|^(help|how|what|why|rewrite|diagnose|build)/i.test(text) && !/\n/.test(text);
+  if (isConversational) { input.value = ''; askDirect(text); return; }
+
+  const preview = text.length > 240 ? text.slice(0, 240) + '…' : text;
+  beginCalibration({
+    content: [{ type: 'text', text: text }],
+    preview: preview,
+    label: 'Your pitch · ' + text.trim().split(/\s+/).length + ' words received',
+    placeholder: null
+  });
   input.value = ''; input.style.height = 'auto';
-  document.getElementById('starterChips').style.display = 'none';
-  document.getElementById('sendBtn').disabled = true;
-  appendMsg('user', text);
-  history.push({ role: 'user', content: text });
-  const typingId = appendTyping();
+}
+
+function beginCalibration(pitch) {
+  pendingPitch = pitch;
+  document.getElementById('pitchPreviewLabel').textContent = pitch.label || 'Your pitch';
+  document.getElementById('pitchPreviewText').textContent = pitch.preview || '';
+  updateRunSummary();
+  setState('calibration');
+}
+
+/* ─────────────── CALIBRATION ─────────────── */
+const selection = { stage: 'Seed', investor: 'Small seed funds', depth: 'Full teardown' };
+
+function wireCalibration() {
+  document.querySelectorAll('.opt-row').forEach(row => {
+    const group = row.dataset.group;
+    row.querySelectorAll('.opt').forEach(btn => {
+      btn.addEventListener('click', () => {
+        row.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selection[group] = btn.dataset.value;
+        updateRunSummary();
+      });
+    });
+  });
+}
+
+function updateRunSummary() {
+  const wordsMap = { 'Fast critique': '~500', 'Full teardown': '~1,200', 'Strategy': '~800', 'Rewrite': '~900' };
+  document.getElementById('runSummary').textContent =
+    selection.stage + ' · ' + selection.investor.toLowerCase() + ' · ' + selection.depth.toLowerCase() +
+    '. Roughly ' + (wordsMap[selection.depth] || '~1,000') + ' words back.';
+}
+
+async function runTeardownFromCalibration() {
+  if (!pendingPitch) { setState('arrival'); return; }
+  const pitch = pendingPitch; pendingPitch = null;
+  const runBtn = document.getElementById('runBtn');
+  runBtn.disabled = true; runBtn.textContent = 'Reading…';
+
+  // Prep the report shell
+  document.getElementById('cbStage').textContent = selection.stage;
+  document.getElementById('cbInvestor').textContent = selection.investor;
+  const body = document.getElementById('reportBody');
+  body.innerHTML = '';
+  setState('report');
+  const typingEl = appendTyping(body);
+
+  const depth = DEPTH[selection.depth] || DEPTH['Full teardown'];
+  const calText = 'Raise context — Stage: ' + selection.stage + '. Primary investor target: ' + selection.investor + '.\n\n' + depth.instruction;
+  const content = pitch.content.concat([{ type: 'text', text: calText }]);
+  history = [{ role: 'user', content }];
+
   try {
     const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: depth.tokens, system: SYSTEM, messages: history })
+    });
+    if (res.status === 413) {
+      typingEl.remove();
+      renderReport(body, 'That deck is a little too large to read directly. Re-export it as a smaller PDF (under ~3MB) or paste your pitch text and I\'ll take it from there.');
+      history = [];
+    } else {
+      const data = await res.json();
+      typingEl.remove();
+      if (data.error) {
+        renderReport(body, '⚠️ ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
+        history = [];
+      } else if (!data.content || !data.content[0] || !data.content[0].text) {
+        renderReport(body, 'I couldn\'t read that. Try re-saving your deck as a PDF, or paste your pitch text.');
+        history = [];
+      } else {
+        const reply = data.content[0].text;
+        history.push({ role: 'assistant', content: reply });
+        renderReport(body, reply);
+        emailTranscript();
+        // Swap heavy deck content for a short placeholder so follow-ups stay light.
+        if (pitch.placeholder) history[0] = { role: 'user', content: pitch.placeholder };
+      }
+    }
+  } catch (err) {
+    typingEl.remove();
+    renderReport(body, 'Network error while reading your pitch. Please try again.');
+    history = [];
+  }
+  runBtn.disabled = false; runBtn.textContent = 'Run the teardown';
+  document.getElementById('followupInput').focus();
+}
+
+/* ─────────────── DIRECT (conversational, no calibration) ─────────────── */
+async function askDirect(text) {
+  document.getElementById('cbStage').textContent = 'Coaching';
+  document.getElementById('cbInvestor').textContent = 'Open question';
+  const body = document.getElementById('reportBody');
+  body.innerHTML = '';
+  setState('report');
+  appendFollowupQuestion(body, text);
+  const typingEl = appendTyping(body);
+  history = [{ role: 'user', content: text }];
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2048, system: SYSTEM, messages: history })
     });
     const data = await res.json();
-    removeTyping(typingId);
-    if (data.error) {
-      appendMsg('coach', '⚠️ API Error: ' + (data.error.message || data.error.type || JSON.stringify(data.error)));
-    } else {
+    typingEl.remove();
+    const reply = (data.content && data.content[0] && data.content[0].text) || ('⚠️ ' + ((data.error && data.error.message) || 'Something went wrong.'));
+    renderReport(body, reply);
+    if (data.content) { history.push({ role: 'assistant', content: reply }); emailTranscript(); }
+  } catch (err) { typingEl.remove(); renderReport(body, 'Network error. Please try again.'); }
+  document.getElementById('followupInput').focus();
+}
+
+/* ─────────────── FOLLOW-UPS ─────────────── */
+async function sendFollowup() {
+  const input = document.getElementById('followupInput');
+  const text = input.value.trim();
+  if (!text || !history.length) return;
+  input.value = '';
+  const body = document.getElementById('reportBody');
+  appendFollowupQuestion(body, text);
+  history.push({ role: 'user', content: text });
+  document.getElementById('followupBtn').disabled = true;
+  const typingEl = appendTyping(body);
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2048, system: SYSTEM, messages: history })
+    });
+    const data = await res.json();
+    typingEl.remove();
+    if (data.error) { renderReport(body, '⚠️ ' + (data.error.message || data.error.type)); history.pop(); }
+    else {
       const reply = data.content[0].text;
-      appendMsg('coach', reply);
+      renderReport(body, reply);
       history.push({ role: 'assistant', content: reply });
       emailTranscript();
     }
-  } catch (err) {
-    removeTyping(typingId);
-    appendMsg('coach', 'Network error. Check your connection and try again.');
-  }
-  document.getElementById('sendBtn').disabled = false;
-  document.getElementById('chatInput').focus();
+  } catch (err) { typingEl.remove(); renderReport(body, 'Network error. Please try again.'); history.pop(); }
+  document.getElementById('followupBtn').disabled = false;
+  document.getElementById('work').scrollTop = document.getElementById('work').scrollHeight;
+  input.focus();
 }
 
-function appendMsg(role, text) {
-  const msgs = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
-  const avatar = document.createElement('div');
-  avatar.className = 'msg-avatar';
-  avatar.textContent = role === 'coach' ? 'ETW' : 'YOU';
-  const bubble = document.createElement('div');
-  bubble.className = 'msg-bubble';
-  bubble.innerHTML = formatMsg(text);
-  // Add a Copy button to substantive coach replies
-  if (role === 'coach' && text && text.length > 200) {
-    const actions = document.createElement('div');
-    actions.className = 'msg-actions';
-    const btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'copy-btn';
-    btn.textContent = 'Copy';
-    btn.onclick = () => {
-      const done = () => { btn.textContent = 'Copied ✓'; setTimeout(() => { btn.textContent = 'Copy'; }, 1800); };
-      const fail = () => { btn.textContent = 'Copy failed'; setTimeout(() => { btn.textContent = 'Copy'; }, 1800); };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done).catch(fail);
-      } else {
-        try {
-          const ta = document.createElement('textarea');
-          ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
-          document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-          document.body.removeChild(ta); done();
-        } catch (e) { fail(); }
-      }
-    };
-    actions.appendChild(btn);
-    bubble.appendChild(actions);
-  }
-  div.appendChild(avatar); div.appendChild(bubble);
-  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
-  return div;
+/* ─────────────── REPORT RENDERING ─────────────── */
+function renderReport(body, text) {
+  const wrap = document.createElement('div');
+  wrap.className = 'report-inner';
+  wrap.innerHTML = formatMsg(text);
+  if (text && text.length > 200) wrap.appendChild(buildCopy(text));
+  body.appendChild(wrap);
+  document.getElementById('work').scrollTop = 0;
 }
 
-// Inline markdown (bold, code, links, check marks) — HTML-escaped first for safety
+function appendFollowupQuestion(body, text) {
+  const q = document.createElement('div');
+  q.className = 'followup q';
+  q.innerHTML = '<span class="followup-tag">You asked</span>' + inlineMd(text);
+  body.appendChild(q);
+  document.getElementById('work').scrollTop = document.getElementById('work').scrollHeight;
+}
+
+function appendTyping(body) {
+  const el = document.createElement('div');
+  el.className = 'typing'; el.innerHTML = '<span></span><span></span><span></span>';
+  body.appendChild(el);
+  document.getElementById('work').scrollTop = document.getElementById('work').scrollHeight;
+  return el;
+}
+
+function buildCopy(text) {
+  const actions = document.createElement('div');
+  actions.className = 'report-actions';
+  const btn = document.createElement('button');
+  btn.type = 'button'; btn.className = 'copy-btn'; btn.textContent = 'Copy';
+  btn.onclick = () => {
+    const done = () => { btn.textContent = 'Copied ✓'; setTimeout(() => btn.textContent = 'Copy', 1800); };
+    const fail = () => { btn.textContent = 'Copy failed'; setTimeout(() => btn.textContent = 'Copy', 1800); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fail);
+    else { try { const ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); } catch(e){ fail(); } }
+  };
+  actions.appendChild(btn);
+  return actions;
+}
+
+// Inline markdown, HTML-escaped first
 function inlineMd(s) {
   s = String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -1123,7 +722,7 @@ function inlineMd(s) {
   return s;
 }
 
-// Block-level markdown: headers, lists, blockquotes, rules, paragraphs
+// Block markdown → HTML
 function formatMsg(text) {
   const lines = String(text).split('\n');
   let html = '', listType = null, para = [];
@@ -1133,70 +732,67 @@ function formatMsg(text) {
     const t = ln.trim();
     if (t === '') { flushPara(); closeList(); continue; }
     let m;
-    if (/^###\s+/.test(t))            { flushPara(); closeList(); html += '<h4>' + inlineMd(t.replace(/^###\s+/, '')) + '</h4>'; continue; }
-    if (/^##\s+/.test(t))             { flushPara(); closeList(); html += '<h3>' + inlineMd(t.replace(/^##\s+/, '')) + '</h3>'; continue; }
-    if (/^#\s+/.test(t))              { flushPara(); closeList(); html += '<h3>' + inlineMd(t.replace(/^#\s+/, '')) + '</h3>'; continue; }
+    if (/^####\s+/.test(t)) { flushPara(); closeList(); html += '<h4>' + inlineMd(t.replace(/^####\s+/, '')) + '</h4>'; continue; }
+    if (/^###\s+/.test(t))  { flushPara(); closeList(); html += '<h3>' + inlineMd(t.replace(/^###\s+/, '')) + '</h3>'; continue; }
+    if (/^##\s+/.test(t))   { flushPara(); closeList(); html += '<h2>' + inlineMd(t.replace(/^##\s+/, '')) + '</h2>'; continue; }
+    if (/^#\s+/.test(t))    { flushPara(); closeList(); html += '<h1>' + inlineMd(t.replace(/^#\s+/, '')) + '</h1>'; continue; }
     if (/^(---+|___+|\*\*\*+)$/.test(t)) { flushPara(); closeList(); html += '<hr>'; continue; }
-    if (/^>\s?/.test(t))              { flushPara(); closeList(); html += '<blockquote>' + inlineMd(t.replace(/^>\s?/, '')) + '</blockquote>'; continue; }
+    if (/^>\s?/.test(t))    { flushPara(); closeList(); html += '<blockquote>' + inlineMd(t.replace(/^>\s?/, '')) + '</blockquote>'; continue; }
     if ((m = t.match(/^[-*]\s+(.*)$/)))  { flushPara(); if (listType !== 'ul') { closeList(); html += '<ul>'; listType = 'ul'; } html += '<li>' + inlineMd(m[1]) + '</li>'; continue; }
     if ((m = t.match(/^\d+\.\s+(.*)$/))) { flushPara(); if (listType !== 'ol') { closeList(); html += '<ol>'; listType = 'ol'; } html += '<li>' + inlineMd(m[1]) + '</li>'; continue; }
-    closeList();
-    para.push(t);
+    closeList(); para.push(t);
   }
   flushPara(); closeList();
   return html;
 }
 
-function appendTyping() {
-  const msgs = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'msg coach'; div.id = 'typing-' + Date.now();
-  const avatar = document.createElement('div');
-  avatar.className = 'msg-avatar'; avatar.textContent = 'ETW';
-  const bubble = document.createElement('div');
-  bubble.className = 'msg-bubble';
-  bubble.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
-  div.appendChild(avatar); div.appendChild(bubble);
-  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
-  return div.id;
+/* ─────────────── NEW PITCH / RESET ─────────────── */
+function resetAll() {
+  history = []; pendingPitch = null;
+  document.getElementById('reportBody').innerHTML = '';
+  document.getElementById('chatInput').value = '';
+  document.getElementById('chatInput').placeholder = 'Paste your pitch or describe your startup…';
+  document.getElementById('followupInput').value = '';
+  switchTab('text');
+  setState('arrival');
+  document.getElementById('chatInput').focus();
 }
 
-function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
-
-function switchTab(mode) {
-  ['text','video','file'].forEach(m => {
-    document.getElementById('tab-'+m)?.classList.toggle('active', m === mode);
-  });
-  const textRow = document.getElementById('chatInputRow');
-  const videoDiv = document.getElementById('mode-video');
-  const fileDiv  = document.getElementById('mode-file');
-  if (mode==='text')  { textRow.style.display=''; videoDiv.style.display='none'; fileDiv.style.display='none'; document.getElementById('chatInput').focus(); }
-  if (mode==='video') { textRow.style.display='none'; videoDiv.style.display='flex'; fileDiv.style.display='none'; document.getElementById('videoUrlInput').focus(); }
-  if (mode==='file')  { textRow.style.display='none'; videoDiv.style.display='none'; fileDiv.style.display=''; }
+/* ─────────────── EMAIL TRANSCRIPT (unchanged backend) ─────────────── */
+function buildTranscript() {
+  return history.map(m => {
+    let text;
+    if (typeof m.content === 'string') text = m.content;
+    else if (Array.isArray(m.content)) text = m.content.map(b => b.type === 'text' ? b.text : b.type === 'document' ? '[PDF deck attached]' : b.type === 'image' ? '[slide image attached]' : '').filter(Boolean).join('\n');
+    else text = '';
+    return (m.role === 'assistant' ? 'COACH' : 'FOUNDER') + ':\n' + text;
+  }).join('\n\n----------\n\n');
+}
+function emailTranscript() {
+  try {
+    fetch('/api/notify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId, count: history.length, transcript: buildTranscript().slice(0, 100000), ts: new Date().toISOString(), ua: navigator.userAgent || '' })
+    }).catch(() => {});
+  } catch (e) {}
 }
 
+/* ─────────────── VIDEO TRANSCRIPTION ─────────────── */
 async function transcribeVideo() {
   const url = document.getElementById('videoUrlInput').value.trim();
   if (!url) return;
   const btn = document.getElementById('transcribeBtn');
   const status = document.getElementById('transcribeStatus');
-  btn.disabled = true; status.style.display = 'block';
-  status.textContent = 'Submitting video for transcription…';
+  btn.disabled = true; status.style.display = 'block'; status.textContent = 'Submitting video for transcription…';
   try {
     let result;
-
     if (url.includes('fireflies.ai')) {
-      // Fireflies — synchronous, no polling needed
       status.textContent = 'Importing from Fireflies…';
-      const ffRes = await fetch('/api/transcribe?action=from-fireflies', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
+      const ffRes = await fetch('/api/transcribe?action=from-fireflies', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
       result = await ffRes.json();
       if (result.error) throw new Error(result.error);
       if (result.status !== 'done') throw new Error('Fireflies import did not complete.');
     } else {
-      // Video/audio URL — async, poll for completion
       const submitRes = await fetch('/api/transcribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url }) });
       result = await submitRes.json();
       if (result.error) throw new Error(result.error);
@@ -1210,218 +806,131 @@ async function transcribeVideo() {
       if (result.status === 'error') throw new Error(result.errorMessage || 'Transcription failed.');
       if (result.status !== 'done') throw new Error('Timed out waiting for transcription.');
     }
-
     status.style.display = 'none'; btn.disabled = false;
     document.getElementById('videoUrlInput').value = '';
-    switchTab('text');
-    const wordCount = result.transcriptionText.trim().split(/\s+/).length;
-    const label = url.includes('fireflies.ai')
-      ? '🎙 Fireflies meeting imported (' + wordCount + ' words)'
-      : '▶ Video transcribed (' + wordCount + ' words)';
-    startDeckAnalysis(label,
-      [{ type: 'text', text: 'Here is my pitch (video/meeting transcript):\n\n' + result.transcriptionText.slice(0, 8000) }],
-      null);
-  } catch(err) { status.textContent = 'Error: ' + err.message; btn.disabled = false; }
+    const words = result.transcriptionText.trim().split(/\s+/).length;
+    const label = url.includes('fireflies.ai') ? '🎙 Fireflies meeting imported · ' + words + ' words' : '▶ Video transcribed · ' + words + ' words';
+    beginCalibration({
+      content: [{ type: 'text', text: 'Here is my pitch (video/meeting transcript):\n\n' + result.transcriptionText.slice(0, 8000) }],
+      preview: result.transcriptionText.trim().slice(0, 240) + '…',
+      label: label, placeholder: null
+    });
+  } catch (err) { status.textContent = 'Error: ' + err.message; btn.disabled = false; }
 }
 
-function handleFileDrop(e) {
-  e.preventDefault();
-  document.getElementById('fileDropZone').classList.remove('dragover');
-  const file = e.dataTransfer.files[0];
-  if (file) processFile(file);
-}
-function handleFileUpload(e) { const file = e.target.files[0]; if (file) processFile(file); e.target.value = ''; }
+/* ─────────────── FILE UPLOAD ─────────────── */
+function handleFileDrop(e) { e.preventDefault(); document.getElementById('fileDropZone').classList.remove('dragover'); const f = e.dataTransfer.files[0]; if (f) processFile(f); }
+function handleFileUpload(e) { const f = e.target.files[0]; if (f) processFile(f); e.target.value = ''; }
 
-// Read any file as base64 (strips the "data:...;base64," prefix)
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result || '');
-      const comma = result.indexOf(',');
-      const data = comma >= 0 ? result.slice(comma + 1) : '';
-      if (!data) reject(new Error('Could not read the file.'));
-      else resolve(data);
-    };
+    reader.onload = () => { const r = String(reader.result || ''); const c = r.indexOf(','); const d = c >= 0 ? r.slice(c + 1) : ''; d ? resolve(d) : reject(new Error('Could not read the file.')); };
     reader.onerror = () => reject(new Error('Could not read the file.'));
     reader.readAsDataURL(file);
   });
 }
 
-// Fallback path for large decks: render pages to images in the browser
 async function extractPdfAsImages(file) {
-  if (typeof pdfjsLib === 'undefined') {
-    throw new Error('the PDF reader did not load — please refresh the page and try again');
-  }
+  if (typeof pdfjsLib === 'undefined') throw new Error('the PDF reader did not load — please refresh the page and try again');
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const numPages = Math.min(pdf.numPages, 20); // Claude supports up to 20 images
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const numPages = Math.min(pdf.numPages, 20);
   const images = [];
   for (let i = 1; i <= numPages; i++) {
     const page = await pdf.getPage(i);
     const viewport = page.getViewport({ scale: 1.2 });
     const canvas = document.createElement('canvas');
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
+    canvas.width = viewport.width; canvas.height = viewport.height;
     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
     const data = canvas.toDataURL('image/jpeg', 0.82).split(',')[1];
     if (data) images.push(data);
   }
-  if (!images.length) {
-    throw new Error('this PDF could not be read — try re-saving it as a PDF, or paste your pitch text');
-  }
+  if (!images.length) throw new Error('this PDF could not be read — try re-saving it as a PDF, or paste your pitch text');
   return { images, total: pdf.numPages };
 }
 
 async function extractPptxText(file) {
   const zip = await JSZip.loadAsync(file);
-  const slideFiles = Object.keys(zip.files)
-    .filter(n => /^ppt\/slides\/slide[0-9]+\.xml$/.test(n))
-    .sort((a, b) => {
-      const na = parseInt(a.match(/slide([0-9]+)/)[1]);
-      const nb = parseInt(b.match(/slide([0-9]+)/)[1]);
-      return na - nb;
-    });
-
+  const slideFiles = Object.keys(zip.files).filter(n => /^ppt\/slides\/slide[0-9]+\.xml$/.test(n))
+    .sort((a, b) => parseInt(a.match(/slide([0-9]+)/)[1]) - parseInt(b.match(/slide([0-9]+)/)[1]));
   if (!slideFiles.length) throw new Error('No slides found in this file.');
-
   const parts = [];
   for (const name of slideFiles) {
     const xml = await zip.files[name].async('string');
-    // Strip XML tags, collapse whitespace, dedupe blank lines
-    const text = xml
-      .replace(/<a:r[^>]*>[\s\S]*?<\/a:r>/g, m => {
-        const t = m.replace(/<[^>]+>/g, '').trim();
-        return t ? t + ' ' : '';
-      })
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const text = xml.replace(/<a:r[^>]*>[\s\S]*?<\/a:r>/g, m => { const t = m.replace(/<[^>]+>/g, '').trim(); return t ? t + ' ' : ''; }).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     if (text) parts.push(text);
   }
-
   if (!parts.join('').trim()) throw new Error('No readable text found in this deck — it may use image-based slides.');
-  return parts.map((t, i) => `[Slide ${i + 1}]\n${t}`).join('\n\n');
+  return parts.map((t, i) => '[Slide ' + (i + 1) + ']\n' + t).join('\n\n');
 }
 
 async function processFile(file) {
   const zone = document.getElementById('fileDropZone');
   const origHTML = zone.innerHTML;
+  const fail = (err) => { zone.innerHTML = origHTML; const s = zone.querySelector('small'); const msg = 'Error: ' + err.message + ' — click to try again'; if (s) s.textContent = msg; else zone.textContent = msg; };
 
-  // PPTX: extract client-side, skip Replit entirely
   if (/\.pptx$/i.test(file.name)) {
     try {
       zone.textContent = 'Reading ' + file.name + '…';
       const text = await extractPptxText(file);
       zone.innerHTML = origHTML;
-      switchTab('text');
-      const wordCount = text.trim().split(/\s+/).length;
-      startDeckAnalysis('📊 ' + file.name + ' (' + wordCount + ' words)',
-        [{ type: 'text', text: 'Here is my pitch deck content:\n\n' + text.slice(0, 8000) }],
-        null);
-    } catch (err) {
-      zone.innerHTML = origHTML;
-      const span = zone.querySelector('span');
-      const msg = 'Error: ' + err.message + ' — click to try again';
-      if (span) span.textContent = msg; else zone.textContent = msg;
-    }
-    document.getElementById('fileInput').value = '';
-    return;
+      beginCalibration({ content: [{ type: 'text', text: 'Here is my pitch deck content:\n\n' + text.slice(0, 8000) }], preview: text.trim().slice(0, 240) + '…', label: '📊 ' + file.name + ' · ' + text.trim().split(/\s+/).length + ' words', placeholder: null });
+    } catch (err) { fail(err); }
+    document.getElementById('fileInput').value = ''; return;
   }
 
-  // PDF: hand the real file to Claude natively (reads text + visuals). For very
-  // large decks, fall back to rendering pages as images so nothing 413s.
   if (/\.pdf$/i.test(file.name)) {
-    const NATIVE_MAX = 3 * 1024 * 1024; // ~3MB source keeps the request under the serverless body limit
+    const NATIVE_MAX = 3 * 1024 * 1024;
     try {
       zone.textContent = 'Reading ' + file.name + '…';
       if (file.size <= NATIVE_MAX) {
         const base64Pdf = await fileToBase64(file);
         zone.innerHTML = origHTML;
-        startDeckAnalysis('📄 ' + file.name,
-          [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Pdf } }],
-          '[Pitch deck uploaded: ' + file.name + ']');
+        beginCalibration({ content: [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Pdf } }], preview: 'PDF deck uploaded — ' + file.name, label: '📄 ' + file.name, placeholder: '[Pitch deck uploaded: ' + file.name + ']' });
       } else {
-        // Large deck: compress pages to images in the browser instead
         const { images, total } = await extractPdfAsImages(file);
         zone.innerHTML = origHTML;
-        startDeckAnalysis('📄 ' + file.name + ' (' + total + ' slides)',
-          images.map(d => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: d } })),
-          '[Pitch deck: ' + images.length + ' slides uploaded as images]');
+        beginCalibration({ content: images.map(d => ({ type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: d } })), preview: total + '-slide deck uploaded — ' + file.name, label: '📄 ' + file.name + ' · ' + total + ' slides', placeholder: '[Pitch deck: ' + images.length + ' slides uploaded as images]' });
       }
-    } catch (err) {
-      zone.innerHTML = origHTML;
-      const span = zone.querySelector('span');
-      const msg = 'Error: ' + err.message + ' — click to try again';
-      if (span) span.textContent = msg; else zone.textContent = msg;
-    }
-    document.getElementById('fileInput').value = '';
-    return;
+    } catch (err) { fail(err); }
+    document.getElementById('fileInput').value = ''; return;
   }
 
+  // Other docs → presigned upload + processing job
   try {
-    // Step 1: Request a presigned GCS upload URL
     zone.textContent = 'Requesting upload slot…';
-    const urlRes = await fetch('/api/transcribe?action=request-upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type || 'application/octet-stream' })
-    });
+    const urlRes = await fetch('/api/transcribe?action=request-upload', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type || 'application/octet-stream' }) });
     const { uploadURL, objectPath, error: urlErr } = await urlRes.json();
     if (urlErr) throw new Error(urlErr);
-
-    // Step 2: PUT file directly to cloud storage (no size limit — bypasses our server)
     zone.textContent = 'Uploading ' + file.name + '…';
-    const putRes = await fetch(uploadURL, {
-      method: 'PUT',
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
-      body: file
-    });
+    const putRes = await fetch(uploadURL, { method: 'PUT', headers: { 'Content-Type': file.type || 'application/octet-stream' }, body: file });
     if (!putRes.ok) throw new Error('Upload to storage failed (' + putRes.status + ').');
-
-    // Step 3: Start processing job
     zone.textContent = 'Processing…';
-    const jobRes = await fetch('/api/transcribe?action=from-storage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ objectPath, filename: file.name })
-    });
+    const jobRes = await fetch('/api/transcribe?action=from-storage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ objectPath, filename: file.name }) });
     let job = await jobRes.json();
     if (job.error) throw new Error(job.error);
-
-    // Step 4: Poll until done
     let attempts = 0;
     while ((job.status === 'pending' || job.status === 'processing') && attempts < 60) {
       await new Promise(r => setTimeout(r, 4000));
       const pollRes = await fetch('/api/transcribe?id=' + job.id);
-      job = await pollRes.json();
-      attempts++;
+      job = await pollRes.json(); attempts++;
     }
     if (job.status === 'error') throw new Error(job.errorMessage || 'Processing failed.');
     if (job.status !== 'done') throw new Error('Timed out waiting for processing.');
-
     zone.innerHTML = origHTML;
-    switchTab('text');
-
     const text = job.transcriptionText;
-    const wordCount = text.trim().split(/\s+/).length;
+    const words = text.trim().split(/\s+/).length;
     const isDoc = /\.(pdf|docx|doc)$/i.test(file.name);
-    const label = isDoc
-      ? '\ud83d\udcc4 ' + file.name + ' (' + wordCount + ' words)'
-      : '\u25b6 ' + file.name + ' transcribed (' + wordCount + ' words)';
-    startDeckAnalysis(label,
-      [{ type: 'text', text: 'Here is my pitch content:\n\n' + text.slice(0, 8000) }],
-      null);
-
-  } catch (err) {
-    zone.innerHTML = origHTML;
-    const span = zone.querySelector('span');
-    const msg = 'Error: ' + err.message + ' — click to try again';
-    if (span) span.textContent = msg; else zone.textContent = msg;
-  }
+    beginCalibration({ content: [{ type: 'text', text: 'Here is my pitch content:\n\n' + text.slice(0, 8000) }], preview: text.trim().slice(0, 240) + '…', label: (isDoc ? '📄 ' : '▶ ') + file.name + ' · ' + words + ' words', placeholder: null });
+  } catch (err) { fail(err); }
   document.getElementById('fileInput').value = '';
 }
+
+/* ─────────────── SKILL MODAL ─────────────── */
+function openSkillModal() { document.getElementById('skillModal').classList.add('open'); }
+function closeSkillModal() { document.getElementById('skillModal').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSkillModal(); });
 </script>
 </body>
 </html>
