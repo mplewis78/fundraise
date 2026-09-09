@@ -207,6 +207,7 @@ a:hover { color: var(--gold); }
 /* calibration composer */
 .run-bar { display: flex; align-items: center; gap: 18px; padding: 18px 30px 22px; }
 .run-summary { flex: 1; font-size: 0.98rem; line-height: 1.5; color: var(--muted); }
+#runBtn { padding: 16px 34px; font-size: 0.78rem; letter-spacing: 0.18em; }
 
 /* report composer */
 .followup-row { display: flex; align-items: stretch; padding: 16px 30px 20px; }
@@ -320,8 +321,8 @@ a:hover { color: var(--gold); }
         </div>
       </div>
       <div class="calib-group">
-        <span class="label">Primary investor target</span>
-        <div class="opt-row" data-group="investor">
+        <span class="label">Primary investor target <span style="color:var(--muted);text-transform:none;letter-spacing:0;">· select all that apply</span></span>
+        <div class="opt-row" data-group="investor" data-multi="true">
           <button class="opt" data-value="Angels">Angels</button>
           <button class="opt selected" data-value="Small seed funds">Small seed funds</button>
           <button class="opt" data-value="Large multi-stage funds">Large multi-stage</button>
@@ -537,16 +538,34 @@ function beginCalibration(pitch) {
 }
 
 /* ─────────────── CALIBRATION ─────────────── */
-const selection = { stage: 'Seed', investor: 'Small seed funds', depth: 'Full teardown' };
+const selection = { stage: 'Seed', investor: ['Small seed funds'], depth: 'Full teardown' };
+
+// Join the (possibly multiple) investor targets into readable text.
+function investorText() {
+  const a = selection.investor;
+  if (!a.length) return '';
+  if (a.length === 1) return a[0];
+  if (a.length === 2) return a[0] + ' and ' + a[1];
+  return a.slice(0, -1).join(', ') + ', and ' + a[a.length - 1];
+}
 
 function wireCalibration() {
   document.querySelectorAll('.opt-row').forEach(row => {
     const group = row.dataset.group;
+    const multi = row.dataset.multi === 'true';
     row.querySelectorAll('.opt').forEach(btn => {
       btn.addEventListener('click', () => {
-        row.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        selection[group] = btn.dataset.value;
+        if (multi) {
+          // Toggle, but never leave zero selected.
+          const on = btn.classList.contains('selected');
+          if (on && row.querySelectorAll('.opt.selected').length === 1) return;
+          btn.classList.toggle('selected');
+          selection[group] = Array.from(row.querySelectorAll('.opt.selected')).map(b => b.dataset.value);
+        } else {
+          row.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          selection[group] = btn.dataset.value;
+        }
         updateRunSummary();
       });
     });
@@ -556,7 +575,7 @@ function wireCalibration() {
 function updateRunSummary() {
   const wordsMap = { 'Fast critique': '~500', 'Full teardown': '~1,200', 'Strategy': '~800', 'Rewrite': '~900' };
   document.getElementById('runSummary').textContent =
-    selection.stage + ' · ' + selection.investor.toLowerCase() + ' · ' + selection.depth.toLowerCase() +
+    selection.stage + ' · ' + investorText().toLowerCase() + ' · ' + selection.depth.toLowerCase() +
     '. Roughly ' + (wordsMap[selection.depth] || '~1,000') + ' words back.';
 }
 
@@ -568,14 +587,14 @@ async function runTeardownFromCalibration() {
 
   // Prep the report shell
   document.getElementById('cbStage').textContent = selection.stage;
-  document.getElementById('cbInvestor').textContent = selection.investor;
+  document.getElementById('cbInvestor').textContent = investorText();
   const body = document.getElementById('reportBody');
   body.innerHTML = '';
   setState('report');
   const typingEl = appendTyping(body);
 
   const depth = DEPTH[selection.depth] || DEPTH['Full teardown'];
-  const calText = 'Raise context — Stage: ' + selection.stage + '. Primary investor target: ' + selection.investor + '.\n\n' + depth.instruction;
+  const calText = 'Raise context — Stage: ' + selection.stage + '. Primary investor target' + (selection.investor.length > 1 ? 's' : '') + ': ' + investorText() + '.\n\n' + depth.instruction;
   const content = pitch.content.concat([{ type: 'text', text: calText }]);
   history = [{ role: 'user', content }];
 
