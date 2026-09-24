@@ -471,7 +471,23 @@ async function loadSkill() {
     console.error('Could not load skill file:', err);
     SYSTEM = 'You are an expert pitch coach helping startup founders improve their fundraising pitch.';
   }
+  SYSTEM += WEB_OVERRIDE;
 }
+
+// The skill's "Session Opening" asks for stage + investor target before any feedback.
+// On this site the founder answers that with the calibration buttons, so the model must never re-ask.
+const WEB_OVERRIDE = `
+
+---
+
+# Web App Override (takes precedence over "Session Opening")
+
+You are running inside the Enjoy The Fundraise web app. The founder has already chosen their raise stage and primary investor target using on-page buttons, and that choice arrives in the message as "Raise context — Stage: … Primary investor target: …".
+
+- Do NOT ask the founder what stage the raise is or which investors they are targeting. Never ask the Session Opening clarifying question. Start producing the requested output immediately.
+- Treat the Raise context as confirmed and calibrate everything to it.
+- If no Raise context is provided (e.g. a quick coaching question), answer directly. If stage matters to the answer, state the assumption you are making in one line (e.g. "Assuming a seed raise to small seed funds…") rather than asking.
+- Do not end your reply by asking for stage or investor type.`;
 
 window.addEventListener('DOMContentLoaded', async () => {
   wireCalibration();
@@ -594,7 +610,7 @@ async function runTeardownFromCalibration() {
   const typingEl = appendTyping(body);
 
   const depth = DEPTH[selection.depth] || DEPTH['Full teardown'];
-  const calText = 'Raise context — Stage: ' + selection.stage + '. Primary investor target' + (selection.investor.length > 1 ? 's' : '') + ': ' + investorText() + '.\n\n' + depth.instruction;
+  const calText = 'Raise context — Stage: ' + selection.stage + '. Primary investor target' + (selection.investor.length > 1 ? 's' : '') + ': ' + investorText() + '. (Already confirmed — do not ask me about stage or investor type.)\n\n' + depth.instruction;
   const content = pitch.content.concat([{ type: 'text', text: calText }]);
   history = [{ role: 'user', content }];
 
