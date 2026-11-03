@@ -16,12 +16,13 @@ export default async function handler(req, res) {
   const from = process.env.NOTIFY_FROM || 'Founder Pitch Coach <onboarding@resend.dev>';
 
   try {
-    const { sessionId, count, transcript, snippet, ts, ua } = req.body || {};
+    const { sessionId, link, count, transcript, snippet, ts, ua } = req.body || {};
     const when = ts || new Date().toISOString();
     const sid = sessionId || 'unknown';
     const body =
       'Founder Pitch Coach — session activity.\n\n' +
       'Session: ' + sid + '\n' +
+      (link ? 'Report link: ' + link + '\n' : '') +
       'When: ' + when + '\n' +
       'Messages so far: ' + (count != null ? count : 'n/a') + '\n' +
       'Browser: ' + (ua || 'unknown') + '\n\n' +

@@ -125,6 +125,9 @@ a:hover { color: var(--gold); }
   padding: 12px 30px; background: var(--surface); border-bottom: 1px solid var(--hair-2);
 }
 .calibrated-bar .cb-val { font-size: 0.98rem; color: var(--ink); }
+.share-wrap { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.share-exp { font-size: 0.82rem; color: var(--muted); }
+.share-note { max-width: 64ch; font-size: 1.02rem; line-height: 1.6; color: var(--muted); }
 .report-body {
   padding: 28px 30px 36px; display: flex; flex-direction: column; gap: 4px;
 }
@@ -259,6 +262,7 @@ a:hover { color: var(--gold); }
   .comes-back-grid span { border-bottom: 1px solid var(--hair); }
   #state-calibration { padding: 22px 18px; }
   .calibrated-bar { padding: 12px 18px; gap: 14px; flex-wrap: wrap; }
+  .share-wrap { margin-left: 0; width: 100%; justify-content: space-between; }
   .report-body { padding: 22px 18px 30px; }
   .chips, .tabs, .input-row, .run-bar, .followup-row { padding-left: 18px; padding-right: 18px; }
   .file-drop { margin-left: 18px; margin-right: 18px; }
@@ -346,6 +350,10 @@ a:hover { color: var(--gold); }
         <span class="label">Calibrated to</span>
         <span class="cb-val" id="cbStage">Seed</span>
         <span class="cb-val" id="cbInvestor">Small seed funds</span>
+        <div class="share-wrap" id="shareWrap" style="display:none;">
+          <span class="share-exp" id="shareExp"></span>
+          <button class="copy-btn" type="button" id="shareBtn" onclick="copyShareLink()">Copy share link</button>
+        </div>
       </div>
       <div class="report-body" id="reportBody"></div>
     </section>
@@ -440,6 +448,9 @@ let SYSTEM = '';
 let sessionId = Math.random().toString(36).slice(2, 8);
 let pendingPitch = null;   // { content:[blocks], preview:'…', placeholder:'…' }
 let currentState = 'arrival';
+let reportId = null;               // set once a report is saved; follow-ups then save back to it
+let reportUrl = null;
+let skillReady = Promise.resolve();
 
 const DEPTH = {
   'Fast critique': { tokens: 1600, instruction: 'Give me a fast critique: name the single killer problem, why investors will pass, and the one highest-priority fix. Keep it tight.' },
@@ -491,7 +502,10 @@ You are running inside the Enjoy The Fundraise web app. The founder has already 
 
 window.addEventListener('DOMContentLoaded', async () => {
   wireCalibration();
-  await loadSkill();
+  skillReady = loadSkill();
+  const shared = location.pathname.match(/^\/r\/([A-Za-z0-9_-]+)\/?$/);
+  if (shared) { loadSharedReport(shared[1]); return; }
+  await skillReady;
   document.getElementById('chatInput').focus();
 });
 
@@ -636,9 +650,9 @@ async function runTeardownFromCalibration() {
         const reply = data.content[0].text;
         history.push({ role: 'assistant', content: reply });
         renderReport(body, reply);
-        emailTranscript();
         // Swap heavy deck content for a short placeholder so follow-ups stay light.
         if (pitch.placeholder) history[0] = { role: 'user', content: pitch.placeholder };
+        saveReport({ mode: 'teardown', stage: selection.stage, investor: investorText(), depth: selection.depth }).then(emailTranscript);
       }
     }
   } catch (err) {
@@ -669,7 +683,7 @@ async function askDirect(text) {
     typingEl.remove();
     const reply = (data.content && data.content[0] && data.content[0].text) || ('⚠️ ' + ((data.error && data.error.message) || 'Something went wrong.'));
     renderReport(body, reply);
-    if (data.content) { history.push({ role: 'assistant', content: reply }); emailTranscript(); }
+    if (data.content) { history.push({ role: 'assistant', content: reply }); saveReport({ mode: 'direct' }).then(emailTranscript); }
   } catch (err) { typingEl.remove(); renderReport(body, 'Network error. Please try again.'); }
   document.getElementById('followupInput').focus();
 }
@@ -685,6 +699,7 @@ async function sendFollowup() {
   history.push({ role: 'user', content: text });
   document.getElementById('followupBtn').disabled = true;
   const typingEl = appendTyping(body);
+  if (reportId) { await sendSavedFollowup(text, body, typingEl); return; }
   try {
     const res = await fetch('/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -703,6 +718,98 @@ async function sendFollowup() {
   document.getElementById('followupBtn').disabled = false;
   document.getElementById('work').scrollTop = document.getElementById('work').scrollHeight;
   input.focus();
+}
+
+/* ─────────────── SHAREABLE REPORTS ─────────────── */
+// Every report is saved to /r/<id>. Anyone with the link can read it and keep asking follow-ups;
+// the link expires 90 days after the report was created.
+async function saveReport(meta) {
+  try {
+    const res = await fetch('/api/report', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history, meta })
+    });
+    if (!res.ok) return;                       // storage not configured or failed — page works as before
+    const data = await res.json();
+    reportId = data.id;
+    reportUrl = data.url || (location.origin + '/r/' + data.id);
+    window.history.replaceState(null, '', '/r/' + data.id);
+    showShare(data.expiresAt);
+  } catch (e) {}
+}
+
+function showShare(expiresAt) {
+  const d = expiresAt ? new Date(expiresAt) : null;
+  document.getElementById('shareExp').textContent = d ? 'Link expires ' + d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+  document.getElementById('shareWrap').style.display = '';
+}
+
+function copyShareLink() {
+  const btn = document.getElementById('shareBtn');
+  const url = reportUrl || location.href;
+  const done = () => { btn.textContent = 'Link copied ✓'; setTimeout(() => btn.textContent = 'Copy share link', 1800); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done).catch(() => prompt('Copy this link:', url));
+  else prompt('Copy this link:', url);
+}
+
+async function loadSharedReport(id) {
+  const body = document.getElementById('reportBody');
+  body.innerHTML = '';
+  document.getElementById('cbStage').textContent = '';
+  document.getElementById('cbInvestor').textContent = '';
+  setState('report');
+  document.getElementById('mastheadStep').textContent = 'Shared teardown';
+  const typingEl = appendTyping(body);
+  try {
+    const res = await fetch('/api/report?id=' + encodeURIComponent(id));
+    typingEl.remove();
+    if (!res.ok) { showMissingReport(body); return; }
+    const record = await res.json();
+    const meta = record.meta || {};
+    if (meta.mode === 'direct') {
+      document.getElementById('cbStage').textContent = 'Coaching';
+      document.getElementById('cbInvestor').textContent = 'Open question';
+    } else {
+      document.getElementById('cbStage').textContent = meta.stage || '';
+      document.getElementById('cbInvestor').textContent = meta.investor || '';
+    }
+    history = record.messages;
+    reportId = record.id;
+    reportUrl = location.origin + '/r/' + record.id;
+    record.messages.forEach((m, i) => {
+      const text = typeof m.content === 'string' ? m.content : '';
+      if (m.role === 'assistant') renderReport(body, text);
+      else if (i > 0 || meta.mode === 'direct') appendFollowupQuestion(body, text);
+    });
+    document.getElementById('work').scrollTop = 0;
+    showShare(record.expiresAt);
+  } catch (e) {
+    typingEl.remove();
+    showMissingReport(body);
+  }
+}
+
+function showMissingReport(body) {
+  body.innerHTML = '<p class="share-note">This report link has expired or doesn\'t exist. Shared reports stay up for 90 days. Use <strong>↺ New pitch</strong> above to run a fresh teardown.</p>';
+  document.getElementById('composer-report').classList.remove('active');
+}
+
+async function sendSavedFollowup(text, body, typingEl) {
+  try {
+    await skillReady;
+    const res = await fetch('/api/report?action=followup', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: reportId, text, system: SYSTEM })
+    });
+    const data = await res.json().catch(() => ({}));
+    typingEl.remove();
+    if (res.status === 404) { renderReport(body, 'This report link has expired, so it can\'t take new questions. Start a new pitch to keep going.'); history.pop(); }
+    else if (!res.ok || !data.reply) { renderReport(body, '⚠️ ' + (data.error || 'Something went wrong.')); history.pop(); }
+    else { renderReport(body, data.reply); history.push({ role: 'assistant', content: data.reply }); emailTranscript(); }
+  } catch (err) { typingEl.remove(); renderReport(body, 'Network error. Please try again.'); history.pop(); }
+  document.getElementById('followupBtn').disabled = false;
+  document.getElementById('work').scrollTop = document.getElementById('work').scrollHeight;
+  document.getElementById('followupInput').focus();
 }
 
 /* ─────────────── REPORT RENDERING ─────────────── */
@@ -783,7 +890,9 @@ function formatMsg(text) {
 
 /* ─────────────── NEW PITCH / RESET ─────────────── */
 function resetAll() {
-  history = []; pendingPitch = null;
+  history = []; pendingPitch = null; reportId = null; reportUrl = null;
+  document.getElementById('shareWrap').style.display = 'none';
+  if (location.pathname !== '/') window.history.replaceState(null, '', '/');
   document.getElementById('reportBody').innerHTML = '';
   document.getElementById('chatInput').value = '';
   document.getElementById('chatInput').placeholder = 'Paste your pitch or describe your startup…';
@@ -807,7 +916,7 @@ function emailTranscript() {
   try {
     fetch('/api/notify', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId, count: history.length, transcript: buildTranscript().slice(0, 100000), ts: new Date().toISOString(), ua: navigator.userAgent || '' })
+      body: JSON.stringify({ sessionId, link: reportUrl || '', count: history.length, transcript: buildTranscript().slice(0, 100000), ts: new Date().toISOString(), ua: navigator.userAgent || '' })
     }).catch(() => {});
   } catch (e) {}
 }
