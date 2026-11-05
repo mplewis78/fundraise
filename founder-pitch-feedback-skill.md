@@ -6,6 +6,13 @@ description: Use when evaluating, improving, rewriting, or stress-testing a star
 # Founder Pitch Feedback
 ## Mike's Coaching Methodology
 
+**Skill Version:** 1.2
+**Last Updated:** 2026-09-24
+**Changelog:**
+- 1.2: Added "The Opening: Capture the Investor Early" (hook types, opening failure modes, the Opening Test); added "Find True Believers, Don't Convert Skeptics" (thesis rejection vs. pitch failure, reading investor reactions in a transcript, three investor buckets); added "Objection Triage: 'You Seem Acquirable'"; added the future-state vision framing ("Here's how X works in 2033") to Punch 4; added Opening Capture to the evaluation framework, workflow, output format, scoring rubric, and guardrails; added Investor Meeting Debrief mode
+- 1.1: Added Session Opening protocol, Founder-Market Fit definition, Handling Founder Pushback, Mode Selection Decision Rule, and Rewrite Mode output standards
+- 1.0: Initial version
+
 ---
 
 ## Purpose
@@ -21,6 +28,7 @@ This skill evaluates:
 - evidence quality
 - market logic
 - storytelling structure
+- opening capture
 - fundraising readiness
 - investor targeting strategy
 - pipeline health
@@ -155,11 +163,76 @@ Show a progression of markets, each larger than the last:
 - Column 2: What we're layering on ("We're expanding into this")
 - Column 3: The full market vision ("Here is how big it gets")
 
+### The Future-State Vision: "Here's How X Works in 2033"
+
+TAM says how big the market is. The vision says what the world looks like once you've won it. The strongest version paints a concrete picture of a specific year, then walks backward to today:
+
+1. **The future state:** "In 2033, this is how [data integration / scheduling / claims processing] works in the enterprise."
+2. **Where we are today:** "We see that future already. Here's our initial product."
+3. **Proof we're on the path:** "Customers love it — look at our traction, expansion, and retention."
+4. **The roadmap:** "Here's how we get from this wedge to that future."
+
+**Example (NoWait):** The founders' vision was that nobody should ever wait in line for anything — a dentist appointment, a doctor, a car wash, a haircut, an oil change. Their beachhead was fast-casual restaurants: every Friday night in suburban America there's a family of four standing outside a chain restaurant for 45 minutes. NoWait let diners put themselves in line remotely and show up when the table was ready. The first product was small and concrete; the vision made it venture-scale; the roadmap connected the two through adjacent sectors.
+
+**Why it works:** A future-state vision gives the investor the wave to believe in (see "Find True Believers") and signals the ambition that separates a company from a feature (see "Objection Triage: 'You Seem Acquirable'"). It also answers "what does this become if it works?" without resorting to abstract mission language.
+
+**Watch for:** A vision that doesn't connect back to the wedge. If the investor can't see how today's product is the first step toward the 2033 picture, the vision reads as a daydream rather than a plan.
+
 **Evaluate Punch 4 by asking:**
 - Is the market over $10B with a credible path?
 - Was it built bottom-up with visible assumptions?
 - Does the expansion story flow logically from the current wedge?
+- Is there a concrete future-state vision ("in 2033, X works like this") that the current product is visibly the first step toward?
 - Can the investor dream about the full potential?
+
+---
+
+# The Opening: Capture the Investor Early
+
+## The Principle
+
+The founder does not have 30 minutes of attention. They have the first few minutes — or the first few slides — to earn the rest.
+
+A typical GP takes 15–20 pitches a week; a firm sees 100 across its partners, and one might go into diligence. The investor is context-switching, their phone is buzzing, and they're deciding early whether this meeting is worth leaning into. First impressions compound: once an investor decides early that a founder is onto something, they spend the rest of the meeting interpreting everything as support. If they haven't decided, they spend it as a skeptic.
+
+**The goal of the opening is not quantity. It's one compelling thing.** The founder doesn't need to cram all four punches into 90 seconds. They need to surface something that makes the investor think "this person is onto something — I'd better pay attention." That's the aha moment.
+
+## What Makes a Compelling Hook
+
+The hook can take several forms. Any one of these, delivered crisply, can work:
+
+- **Market magnitude** — a number that reframes the size of the problem, ideally with visible logic ("39,000 North American companies over $100M revenue each spend $1–2M a year on this. That's $45–60B in North America alone.")
+- **A unique perspective on the market** — a contrarian or non-obvious read on where the market is going that the investor hasn't heard framed this way
+- **An inevitability** — a shift that is clearly coming in the next 5–7 years, which the company is positioned to ride (the wave)
+- **Surprising traction** — proof that's disproportionate to the company's age or size ("customers onboard in 30 days and pay us $250K a year")
+- **A visceral persona moment** — a specific person in a specific painful situation that the investor immediately recognizes
+
+The best openings pair a hook with a quick "and here's why we're the ones": the world has this problem, here's our solution, you should care because it's massive, and look — it's already working.
+
+## Opening Failure Modes
+
+Flag these whenever they appear in the first few minutes or first few slides:
+
+1. **Opening with the company name and tagline.** "At Stackless, we're the data team that runs itself" centers the company, not the world's problem, and gives the investor nothing to react to. Taglines are for the website.
+2. **Asking the investor a question before giving them anything to react to.** "What do you think of that?" or "Do you use AI?" as an opener hands the floor back before the investor has a reason to engage. Questions can work, but only once there's a hook on the table.
+3. **Not surfacing the magnitude.** If the market size or the scale of the pain only comes out when the investor asks for it, the founder has left their most compelling material on the bench.
+4. **Assuming 30 minutes of attention.** A founder who "warms up" for the first 5–10 minutes has usually lost the room before the good material arrives. The meeting length is not the attention span.
+
+## The Opening Test
+
+For any pitch (video, transcript, script, or deck), stop at the ~2–3 minute mark, or after the first 2–3 slides, and ask:
+
+- **What has the investor actually heard so far?** List it plainly.
+- **Is there one compelling hook in there?** Name it. If you can't, the opening fails.
+- **Where does the best hook actually appear?** If the most compelling material (market size, unique perspective, inevitability, standout traction) shows up later, name the timestamp or slide number and recommend moving it up front.
+- **Which opening failure modes are present?**
+- **Does the rest of the pitch support the opening?** Once the hook lands, everything after it should reinforce it. A pitch that opens on "$60B market" and then never returns to it wastes its own hook.
+
+For video input, use actual timestamps. "Your $60B market figure first appears at 3:10, and only after the investor asked" is far more useful than "surface the market earlier."
+
+## The Deck in a Conversational Pitch
+
+Some founders prefer to pitch conversationally without slides. That's fine — keep the deck as a backup. If the conversation flows, keep going; if it doesn't (the investor is on their 12th meeting of the day and fried), pull it up to structure the conversation. Either way, the deck must exist and be sent after: the investor needs something to upload to Slack or their CRM so the partners who vote on Monday have seen it.
 
 ---
 
@@ -203,6 +276,7 @@ The 30-second story must:
 - Work as an intro email, a warm-up at a party, and the opening of a pitch meeting
 - Intrigue and educate in equal measure
 - Make the listener want to know more
+- Contain at least one compelling hook (see "The Opening: Capture the Investor Early")
 
 **When evaluating a pitch, always check:** Does the founder have a clean 30-second story that could anchor a warm intro email?
 
@@ -216,6 +290,56 @@ The 30-second story must:
 2. **Fundraise when you can win.** Traction/momentum is attractive, story makes sense, enough investors engaged to create strong initial meetings.
 3. **Fundraise during good windows.** Don't start a US fundraise between Thanksgiving and New Year's or between July 4th and Labor Day.
 4. **Don't be a tourist fundraiser.** Put real time in. Don't drop into a market where you have no roots.
+
+---
+
+## Find True Believers, Don't Convert Skeptics
+
+### The Principle
+
+Fundraising is not about convincing people. It's about finding the investors who already believe what you believe — about where the market is going, about the inevitable shift — and then convincing them you're the team to win it.
+
+If an investor already believes in the wave, the founder only has one thing left to prove: that this is the right surfer. That's what the rest of the meeting is for. If the investor doesn't believe in the wave, no amount of pitching will get them there in 30 minutes, and the founder's time is better spent finding someone who does.
+
+Founders who've been through many failed pitches often fall into a pattern of treating every meeting as a conversion exercise — swiping through investors hoping one says yes. The fix is to stop trying to be something to everybody and target the people who already understand the problem.
+
+### Thesis Rejection vs. Pitch Failure
+
+This is the critical distinction when reacting to an investor meeting. Not every "no" means "move on."
+
+**Thesis rejection → move on.** The investor clearly heard the core thesis and doesn't buy it. They don't believe the market shift is coming, don't think the problem is big, or have a fundamentally different view of where the space is going. This is not a pitch problem. Don't re-pitch; don't argue. Note it, thank them, and redirect energy toward investors who share the thesis.
+
+**Pitch failure → fix the pitch.** The investor never clearly heard the thesis because the opening didn't surface it, the magnitude was buried, or the story was company-centric. Their disengagement is a signal about the pitch, not about their beliefs. This is on the founder to fix.
+
+The test: *Could the investor state the founder's core thesis back accurately?* If yes and they still disagree, it's thesis rejection. If no, it's pitch failure.
+
+### How to React to a Transcript with Investor Reactions
+
+When the input includes investor dialogue (a recorded meeting, a practice pitch with a VC, a debrief), assess:
+
+- **What is the founder's core thesis?** State it in one sentence.
+- **Did the investor hear it clearly?** Point to where (or whether) it was stated.
+- **What's the investor's belief signal?**
+  - *True believer:* leans in, extends the thesis with their own examples, asks "how" questions (GTM, team, roadmap), starts helping.
+  - *Engaged but unconvinced on team/execution:* believes the wave, questions whether this founder wins it. Keep going — this is the right investor; address the execution concern.
+  - *Skeptic of the thesis:* questions the premise itself, argues the market won't shift, compares unfavorably to a different view of the future. Classify as thesis rejection and recommend moving on.
+  - *Never engaged:* distracted, generic questions, no evidence they absorbed the thesis. Classify as pitch failure.
+- **Recommendation:** pursue, address a specific concern, fix the pitch, or move on.
+
+### Investor Targeting: The Three Buckets
+
+Investors in a round usually come from three buckets:
+
+1. **People who know and believe in the founder** — previous backers, former colleagues, people who've seen them operate.
+2. **People who know and understand the problem** — investors with theses in the space, operators who've lived the pain, execs whose industries are being disrupted by the shift the company rides (e.g., senior people at consulting firms or systems integrators who can see their own world changing). **Lead investors most often come from this bucket, and it's where the bulk of the founder's time should go.**
+3. **Affinity groups** — alumni networks, regional funds, people who invest for reasons unrelated to the business.
+
+Focus on landing a lead first. Once there's a lead, especially in a hot market or category, the rest of the round becomes much easier to build.
+
+**Evaluate investor targeting by asking:**
+- Is the founder pitching people who already believe in the wave, or trying to convert generalists?
+- Where are the likely leads coming from? Are they in bucket 2?
+- Is the founder spending time on non-lead investors before a lead is in place?
 
 ---
 
@@ -269,6 +393,8 @@ For reference when evaluating deck structure:
 12. **Capital Raise** — amount raising now, raised to date, primary uses
 13. **Appendix**
 
+Note: the first 2–3 slides are the opening. At least one compelling hook (see "The Opening") must appear there — if the most compelling fact in the deck lives on slide 6, pull it forward.
+
 ---
 
 ## The First Meeting
@@ -279,7 +405,9 @@ Two goals:
 1. Get the next meeting
 2. Begin aligning prospective investors to the same timeline
 
-Spend 20 of 30 minutes on your company's story. Use your 30-second story as the opening. Be curious about the investor — you are interviewing a potential board member, not auditioning for them. Ask about the fund, their thesis, their investment approach.
+Win the first few minutes first (see "The Opening: Capture the Investor Early"). Then spend the bulk of the meeting on the company's story, with everything reinforcing the opening hook. Be curious about the investor — you are interviewing a potential board member, not auditioning for them. Ask about the fund, their thesis, their investment approach. Listen for whether they share the core thesis (see "Find True Believers").
+
+By the end of the meeting, the investor should be able to pitch the company to their partners on Monday without the founder in the room. That's the real test of a first meeting: did you arm a champion?
 
 Demonstrate that you are a peer, not a subordinate.
 
@@ -311,6 +439,22 @@ The first meeting was the WHAT and WHY. The second meeting is the HOW.
 
 ---
 
+## Objection Triage: "You Seem Acquirable"
+
+A common VC objection: "Your company looks like an acquisition target. You'll take a $300M offer in 18 months, and that won't return my fund." Before responding, triage which of three things is actually going on:
+
+**1. It's a cop-out.** The investor doesn't want to invest and is using this as a polite way to say no. Signal: the objection is vague, not tied to anything specific in the pitch, and they don't engage when you probe. Response: disregard it and move on. Don't restructure the pitch around a non-reason.
+
+**2. It's a feature-vs-company concern.** The investor has a legitimate structural worry that this is a feature, not a product, and not a whole company — that it will get absorbed into someone else's value chain because it can't get big independently (can't scale, can't attract talent, can't own enough of the stack). Signal: they talk about incumbents, platforms, or the value chain. Response: unpack it. Ask how they see the value chain. If they see five pieces and don't believe the company can build or acquire the other four, address that directly — show the path from wedge to platform (see "The Future-State Vision").
+
+**3. It's doubt about the founder's ambition.** The investor thinks the founder will settle for a fast, comfortable exit instead of swinging for a fund-returning outcome. Signal: questions about personal goals, how big the founder wants this to get, or comparisons to founders who sold early. Response: this is something the pitch is conveying, often unintentionally. Look for what's signaling "modest outcome" — a narrow vision, cautious TAM, language about "a nice business." Fix it with a bigger future-state vision and explicit ambition.
+
+**Market context:** Ambition expectations vary by geography and fund. Investors in smaller ecosystems will often back a company for a 5–10× outcome. In SF and at large multi-stage funds, the bar is a potential category-defining company, and a founder who reads as acquisition-bound will get passed on.
+
+**When evaluating a pitch or transcript:** If the "acquirable" objection appears (or is likely), name which of the three it most likely is, cite the evidence, and prescribe the matching response.
+
+---
+
 ## Fundraise Pipeline Health Metrics
 
 Use these benchmarks to diagnose whether a fundraise is going well or poorly:
@@ -328,7 +472,7 @@ Use these benchmarks to diagnose whether a fundraise is going well or poorly:
 **Diagnosing pipeline problems:**
 
 - **Low intro-to-1st-meeting conversion (<70%):** The positioning, 30-second story, or investor targeting is wrong. The value prop isn't landing in the intro email.
-- **Low 1st-to-2nd-meeting conversion (<25%):** The story or founder credibility isn't landing in the first meeting. The pitch isn't making investors lean in.
+- **Low 1st-to-2nd-meeting conversion (<25%):** The story or founder credibility isn't landing in the first meeting. The pitch isn't making investors lean in. Check the opening first — this is usually where it breaks. Also check targeting: is the founder pitching true believers or trying to convert skeptics?
 - **Low 2nd meeting-to-diligence conversion (<30%):** The "how" isn't convincing. Unit economics, GTM, or team depth is raising concerns.
 - **Low diligence-to-partner meeting conversion (<30%):** A specific deal-breaker is emerging. Find it and address it directly.
 - **Low partner meeting-to-term sheet (<30%):** Misalignment on fund thesis, check size, or ownership expectations.
@@ -361,6 +505,7 @@ At pre-seed:
 - Narrative matters more than dashboards
 - Clarity matters more than polish
 - A compelling 30-second story and a credible persona are often sufficient to earn a meeting
+- The opening hook is usually a unique perspective or an inevitability, not traction
 
 Do NOT penalize founders for lacking metrics they cannot yet have.
 
@@ -437,24 +582,25 @@ A company that works for a $20M seed fund may not work for a $2B multi-stage fun
 Care more about: sharp insight, founder quality, wedge credibility, velocity, early conviction. The company does NOT need to look inevitable yet.
 
 ## Large Venture Funds
-Care more about: venture-scale upside, category creation, market expansion, long-term defensibility, fund-returning outcomes. The founder must tell a story large enough to matter to a $500M+ fund.
+Care more about: venture-scale upside, category creation, market expansion, long-term defensibility, fund-returning outcomes. The founder must tell a story large enough to matter to a $500M+ fund. Expect the "you seem acquirable" objection if ambition isn't explicit.
 
 ---
 
 # Core Evaluation Framework
 
-For every pitch, evaluate these 10 dimensions:
+For every pitch, evaluate these 11 dimensions:
 
-1. Customer Pain (Punch 1)
-2. Market Timing
-3. Product Wedge (Punch 2)
-4. Founder-Market Fit — see definition below
-5. Evidence Quality (Punch 3)
-6. GTM Credibility
-7. Market Potential (Punch 4 / TAM)
-8. Competitive Differentiation
-9. Fundability
-10. Narrative Clarity (Four Punch flow)
+1. Opening Capture (the first few minutes / first few slides)
+2. Customer Pain (Punch 1)
+3. Market Timing
+4. Product Wedge (Punch 2)
+5. Founder-Market Fit — see definition below
+6. Evidence Quality (Punch 3)
+7. GTM Credibility
+8. Market Potential (Punch 4 / TAM / future-state vision)
+9. Competitive Differentiation
+10. Fundability
+11. Narrative Clarity (Four Punch flow)
 
 ### Founder-Market Fit — Definition
 
@@ -476,6 +622,7 @@ Then identify:
 - What is boring
 - What is missing
 - What is strongest
+- What is buried (compelling material that appears too late)
 
 ---
 
@@ -484,15 +631,17 @@ Then identify:
 When reviewing a pitch:
 
 1. Summarize the company in one sentence
-2. Assess whether the Four Punch Combo lands in sequence
-3. Identify the strongest aspect
-4. Identify the biggest investor-blocking weakness
-5. Determine whether the problem is: story / evidence / positioning / ambition / differentiation / GTM / credibility
-6. Evaluate stage appropriateness
-7. Evaluate investor fit (fund size, thesis match)
-8. Identify likely investor objections
-9. Suggest concrete fixes using the frameworks above
-10. Rank the highest-leverage improvements
+2. Run the Opening Test — what has the investor heard in the first few minutes, is there a compelling hook, and where does the best hook actually appear?
+3. Assess whether the Four Punch Combo lands in sequence
+4. Identify the strongest aspect
+5. Identify the biggest investor-blocking weakness
+6. Determine whether the problem is: opening / story / evidence / positioning / ambition / differentiation / GTM / credibility
+7. Evaluate stage appropriateness
+8. Evaluate investor fit (fund size, thesis match)
+9. If the input includes investor reactions: classify the investor's belief signal and distinguish thesis rejection from pitch failure
+10. Identify likely investor objections (triage "acquirable" if it appears)
+11. Suggest concrete fixes using the frameworks above
+12. Rank the highest-leverage improvements
 
 ---
 
@@ -504,6 +653,16 @@ The clearest explanation for why this pitch currently works or does not work.
 
 ---
 
+## The Opening
+
+- What the investor has heard by the ~2–3 minute mark (or after the first 2–3 slides)
+- The hook: named, or "none"
+- The best buried hook and where it currently appears (timestamp or slide number)
+- Opening failure modes present
+- A rewritten opening (3–5 sentences) that leads with the strongest hook
+
+---
+
 ## Four Punch Assessment
 
 Does each punch land?
@@ -511,7 +670,7 @@ Does each punch land?
 - Punch 1 (Problem/Persona): ✓ or ✗ — why
 - Punch 2 (Solution fit): ✓ or ✗ — why
 - Punch 3 (Traction/proof): ✓ or ✗ — why
-- Punch 4 (Market/TAM): ✓ or ✗ — why
+- Punch 4 (Market/TAM/vision): ✓ or ✗ — why
 
 Where does the sequence break?
 
@@ -526,6 +685,16 @@ Does the pitch match expectations for this stage? Explain why.
 ## Investor Fit
 
 Does this story fit the type of investor being targeted? Does the ambition match the fund size?
+
+---
+
+## Investor Belief Read (only when the input includes investor reactions)
+
+- The founder's core thesis in one sentence
+- Did the investor hear it clearly?
+- Belief signal: true believer / engaged but unconvinced on execution / thesis skeptic / never engaged
+- Verdict: thesis rejection (move on) or pitch failure (fix the pitch)
+- Recommendation
 
 ---
 
@@ -566,20 +735,22 @@ Does this story fit the type of investor being targeted? Does the ambition match
 
 ## Likely Investor Objections
 
-List the questions investors will likely ask. Prioritize the hardest objections first.
+List the questions investors will likely ask. Prioritize the hardest objections first. If "you seem acquirable" is likely or present, triage it (cop-out / feature-vs-company / ambition) and give the matching response.
 
 ---
 
 ## Specific Fixes
 
 Provide:
+- Opening improvements (lead with the hook)
 - Narrative improvements (Four Punch sequencing)
 - Slide improvements
 - TAM construction guidance
+- Future-state vision ("here's how X works in 2033")
 - Competition slide reframe
 - Proof-point additions
 - 30-second story improvements
-- Investor targeting advice if relevant
+- Investor targeting advice if relevant (true believers, three buckets, leads first)
 
 Be concrete. Apply the frameworks above.
 
@@ -591,6 +762,34 @@ Rank:
 1. Highest leverage improvement
 2. Second highest leverage improvement
 3. Third highest leverage improvement
+
+---
+
+# Scoring Rubric
+
+Score 1–5:
+
+- Opening Capture
+- Four Punch Combo Coherence
+- Persona Clarity
+- Problem Urgency
+- Solution Fit
+- TAM Quality
+- Traction Credibility
+- GTM Logic
+- Competitive Differentiation
+- Founder-Market Fit
+- Fundability
+
+Scoring definitions:
+1 = weak or unconvincing
+3 = understandable but not compelling
+5 = investor would repeat this positively to partners
+
+Opening Capture specifically:
+1 = no hook in the opening; company-centric or throat-clearing
+3 = a hook exists but is soft, late, or buried under setup
+5 = a distracted GP would put their phone down within the first two minutes
 
 ---
 
@@ -618,6 +817,8 @@ Prefer:
 - "Your competition slide puts you in the top-right quadrant. No investor believes this. Show them you understand the tradeoffs that actually exist in this market."
 - "The Four Punches don't connect. Punch 1 is about enterprise procurement pain, but Punch 2 is about workflow automation. They don't answer each other."
 - "Your pipeline metrics suggest the problem is at the 1st-to-2nd-meeting conversion. That's a story problem, not a traction problem."
+- "You open with your tagline and then ask the investor what they think. They have nothing to react to yet. Your most compelling fact — a $60B market — doesn't appear until 3:10, and only because the investor asked. The principle: you get a few minutes of attention, not thirty. Lead with the number."
+- "This investor heard your thesis clearly and argued the market won't shift. That's not a pitch problem — it's a belief mismatch. Move on and spend the time finding investors who already see the wave."
 
 ---
 
@@ -644,12 +845,17 @@ Do NOT:
 - Accept a 2×2 competition matrix as genuine competitive analysis
 - Mistake activity for traction
 - Evaluate a pre-seed pitch against Series A standards
+- Assume a pitch has 30 minutes of the investor's attention
+- Tell a founder to "move on" from an investor who never clearly heard the thesis — that's a pitch failure, not a skeptic
+- Rebuild a pitch around an "acquirable" objection before triaging whether it's real
 
 Always:
+- Run the Opening Test before the Four Punch assessment
 - Separate evidence from narrative
 - Apply the Four Punch Combo as the primary narrative test
 - Pressure-test TAM logic bottom-up
 - Use pipeline benchmarks to diagnose fundraise health
+- Distinguish thesis rejection from pitch failure when investor reactions are present
 - Teach the principle behind every fix
 
 ---
@@ -663,6 +869,8 @@ Always:
 - The founder has provided a detailed pitch script (full narrative, not a summary)
 - The founder explicitly asks for a full teardown
 
+If the input is a meeting transcript that includes investor dialogue, use Investor Meeting Debrief Mode.
+
 When in doubt, use Fast Critique Mode. A tight diagnosis is more useful than an exhaustive one on thin input.
 
 ---
@@ -671,6 +879,7 @@ When in doubt, use Fast Critique Mode. A tight diagnosis is more useful than an 
 Use for short founder summaries or quick feedback.
 
 Focus on:
+- Whether the opening has a compelling hook
 - Which of the Four Punches is missing or weak
 - Biggest investor-blocking issue
 - Likely investor reaction
@@ -681,10 +890,22 @@ Focus on:
 Use when full deck or script is provided.
 
 Provide:
+- The Opening Test (with timestamps for video)
 - Slide-by-slide Four Punch assessment
 - TAM construction critique
 - Competition slide assessment
 - 30-second story evaluation
+
+---
+
+## Investor Meeting Debrief Mode
+Use when the input is a recorded or transcribed meeting that includes investor dialogue (real or practice).
+
+Provide:
+- The Opening Test on the founder's first few minutes
+- Investor Belief Read (thesis rejection vs. pitch failure)
+- Objection triage for any objections raised
+- What to change before the next meeting, and whether to pursue this investor
 
 ---
 
@@ -693,7 +914,7 @@ Use when founder asks about investor targeting, outreach, or pipeline health.
 
 Provide:
 - Fundraising readiness assessment against the four core tenets
-- Investor targeting guidance (fund size, stage, thesis fit)
+- Investor targeting guidance (true believers, three buckets, leads first, fund size, stage, thesis fit)
 - Pipeline math benchmarks and diagnosis
 - VC intro playbook guidance
 - First and second meeting preparation
@@ -704,7 +925,9 @@ Provide:
 Use when founder requests restructuring or rewriting.
 
 Can generate:
+- Rewritten opening (first 2–3 minutes / first 2–3 slides) led by the strongest hook
 - Revised Four Punch narrative
+- Future-state vision ("here's how X works in 2033")
 - 30-second story
 - Canonical 13-slide deck sequencing
 - TAM slide construction
