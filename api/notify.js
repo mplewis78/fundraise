@@ -1,6 +1,22 @@
+import { originOk, rateLimit } from './_guard.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  // Spam protection: only our own pages, a sane per-IP volume, and only real sessions
+  // (the page always sends a transcript that includes at least one COACH reply).
+  // Rejections return 200 so bots learn nothing, and no email is sent.
+  if (!originOk(req)) return res.status(200).json({ ok: false });
+  if (!(await rateLimit(req, 'notify', 20, 3600))) return res.status(200).json({ ok: false });
+  {
+    const b = req.body || {};
+    const sidOk = typeof b.sessionId === 'string' && /^[a-z0-9]{1,12}$/.test(b.sessionId);
+    const t = typeof b.transcript === 'string' ? b.transcript : '';
+    const realSession = /(^|\n)COACH:\n/.test(t) && /(^|\n)FOUNDER:\n/.test(t);
+    if (!sidOk || !realSession || t.length > 100000) return res.status(200).json({ ok: false });
+    if (b.link && !/^https:\/\/(www\.)?enjoythefundraise\.ai\/r\/[A-Za-z0-9_-]{8,32}$/.test(String(b.link))) b.link = '';
   }
 
   const apiKey = process.env.RESEND_API_KEY;

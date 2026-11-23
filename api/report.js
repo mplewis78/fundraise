@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { originOk, rateLimit, systemOk } from './_guard.js';
 
 // Saved, shareable reports. Each report lives in Upstash Redis under report:<id>
 // and expires automatically TTL_DAYS after it was created.
@@ -48,10 +49,13 @@ export default async function handler(req, res) {
     }
 
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+    if (!originOk(req)) return res.status(403).json({ error: 'Forbidden' });
 
     // ── Ask a follow-up on a saved report ──
     if (req.query.action === 'followup') {
+      if (!(await rateLimit(req, 'followup', 40, 3600))) return res.status(429).json({ error: 'Too many requests — please wait a bit and try again.' });
       const { id, text, system } = req.body || {};
+      if (!(await systemOk(req, system))) return res.status(403).json({ error: 'Forbidden' });
       if (!ID_RE.test(String(id || ''))) return res.status(404).json({ error: 'not_found' });
       if (!text || typeof text !== 'string' || text.length > 20000) {
         return res.status(400).json({ error: 'Please enter a question.' });
@@ -83,8 +87,9 @@ export default async function handler(req, res) {
     }
 
     // ── Save a new report ──
+    if (!(await rateLimit(req, 'save', 15, 3600))) return res.status(429).json({ error: 'Too many requests.' });
     const { messages, meta } = req.body || {};
-    if (!Array.isArray(messages) || messages.length < 2) {
+    if (!Array.isArray(messages) || messages.length < 2 || messages.length > 60 || JSON.stringify(req.body).length > 2_000_000) {
       return res.status(400).json({ error: 'Nothing to save.' });
     }
     const id = crypto.randomBytes(9).toString('base64url'); // 12 chars, unguessable
